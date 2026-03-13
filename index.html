@@ -3,134 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master Ultimate - 정밀 신살/12운성</title>
+    <title>Bazi Master Ultimate - Fixed</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root {
-            --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
-            --metal: #95a5a6; --water: #2c3e50; --bg: #f0f2f5;
-        }
+        :root { --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #95a5a6; --water: #2c3e50; --bg: #f0f2f5; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .card { max-width: 650px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .card { max-width: 600px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .input-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+        .option-group { display: flex; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 10px; font-size: 12px; }
+        input, select, button { padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
+        button { background: #000; color: #fff; font-weight: bold; cursor: pointer; border: none; }
         
-        /* 입력부 */
-        .input-box { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-        .option-group { display: flex; flex-wrap: wrap; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 12px; border: 1px solid #eee; font-size: 13px; }
-        select, input { padding: 10px; border: 2px solid #eee; border-radius: 10px; outline: none; }
+        /* 명식 레이아웃 */
+        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .column { display: flex; flex-direction: column; gap: 5px; text-align: center; }
+        .ss-label { font-size: 11px; font-weight: bold; color: #666; height: 15px; }
+        .cell { height: 70px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 900; }
+        .sub-box { background: #f1f3f5; padding: 5px; border-radius: 8px; font-size: 11px; min-height: 45px; }
+        .master { border: 3px solid #000; box-sizing: border-box; }
 
-        /* 명식 그리드 (확장형) */
-        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
-        .column { display: flex; flex-direction: column; gap: 4px; text-align: center; }
-        .top-shinsin { font-size: 12px; font-weight: bold; color: #666; height: 15px; }
-        .cell { height: 70px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-size: 22px; font-weight: 800; position: relative; }
-        .master { border: 3px solid #000; }
-        
-        /* 지장간/12운성/신살 */
-        .sub-info { font-size: 11px; background: #f1f3f5; padding: 5px; border-radius: 6px; line-height: 1.4; color: #444; }
-        .hidden-gan { color: #777; font-weight: bold; border-bottom: 1px dashed #ccc; margin-bottom: 3px; padding-bottom: 2px; }
-        .twelve-un { font-weight: 800; color: #2c3e50; }
-        .shinsal { font-size: 10px; color: #d35400; font-weight: bold; margin-top: 2px; }
-
-        /* 대운/세운 디자인 유지 */
+        /* 대운/세운/월운 리스트 */
         .section-title { font-size: 14px; font-weight: bold; margin: 20px 0 10px; border-left: 4px solid #000; padding-left: 10px; }
-        .luck-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
-        .luck-item { min-width: 60px; text-align: center; background: #fafafa; padding: 8px; border-radius: 12px; border: 1px solid #eee; flex-shrink: 0; cursor: pointer; }
+        .scroll-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
+        .luck-item { min-width: 60px; text-align: center; background: #fafafa; padding: 10px; border-radius: 12px; border: 1px solid #eee; flex-shrink: 0; cursor: pointer; }
+        .grid-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; display: none; }
+        .mini-card { padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; }
+        .active { border: 2px solid #000 !important; }
 
         .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
-        .unknown { background: #ddd !important; color: #aaa !important; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; margin-top:0;">BAZI ULTIMATE</h2>
-    
+    <h2 style="text-align:center;">BAZI MASTER PRO</h2>
     <div class="input-box">
-        <div style="display: flex; gap: 5px;">
-            <input type="text" id="addr-input" placeholder="Location Search" style="flex:1;">
-            <button onclick="searchLocation()" style="width:60px; background:#444; color:#fff; border:none; border-radius:10px;">검색</button>
-        </div>
-        <div style="display: flex; gap: 10px;">
+        <input type="text" id="addr-input" placeholder="Enter City (e.g. Seoul or New York)">
+        <button onclick="searchLocation()" style="background:#444;">Search Location</button>
+        <div id="geo-info" style="font-size:11px; color:#888;">경도 미설정</div>
+        <div style="display:flex; gap:5px;">
             <input type="datetime-local" id="birth-dt" style="flex:2;">
             <select id="gender"><option value="M">남성</option><option value="F">여성</option></select>
         </div>
         <div class="option-group">
             <label><input type="checkbox" id="no-time"> 생시 모름</label>
-            <label>자시: <select id="jasi-type"><option value="Y">야자시(23시+)</option><option value="N">전통</option></select></label>
+            <label>자시: <select id="jasi-type"><option value="Y">야자시</option><option value="N">전통</option></select></label>
         </div>
-        <button onclick="analyze()" style="padding:15px; background:#000; color:#fff; font-weight:bold; border-radius:10px; border:none;">분석 실행</button>
+        <button onclick="analyze()">Analyze & Show Luck</button>
     </div>
 
     <div id="result" style="display:none;">
         <div class="bazi-grid">
-            <div class="column"><div class="top-shinsin" id="h-ss"></div><div id="h-gan" class="cell"></div><div id="h-zhi" class="cell"></div><div class="sub-info" id="h-sub"></div></div>
-            <div class="column"><div class="top-shinsin" id="d-ss">日干</div><div id="d-gan" class="cell master"></div><div id="d-zhi" class="cell"></div><div class="sub-info" id="d-sub"></div></div>
-            <div class="column"><div class="top-shinsin" id="m-ss"></div><div id="m-gan" class="cell"></div><div id="m-zhi" class="cell"></div><div class="sub-info" id="m-sub"></div></div>
-            <div class="column"><div class="top-shinsin" id="y-ss"></div><div id="y-gan" class="cell"></div><div id="y-zhi" class="cell"></div><div class="sub-info" id="y-sub"></div></div>
+            <div class="column"><div id="h-ss" class="ss-label"></div><div id="h-gan" class="cell"></div><div id="h-zhi" class="cell"></div><div id="h-sub" class="sub-box"></div></div>
+            <div class="column"><div class="ss-label">日干</div><div id="d-gan" class="cell master"></div><div id="d-zhi" class="cell"></div><div id="d-sub" class="sub-box"></div></div>
+            <div class="column"><div id="m-ss" class="ss-label"></div><div id="m-gan" class="cell"></div><div id="m-zhi" class="cell"></div><div id="m-sub" class="sub-box"></div></div>
+            <div class="column"><div id="y-ss" class="ss-label"></div><div id="y-gan" class="cell"></div><div id="y-zhi" class="cell"></div><div id="y-sub" class="sub-box"></div></div>
         </div>
-        
-        <div class="section-title">대운</div>
-        <div id="luck-list" class="luck-container"></div>
-        <div id="seun-area" style="display:none; margin-top:15px;" class="sub-info">
-            <div id="seun-list" style="display:grid; grid-template-columns: repeat(5,1fr); gap:5px;"></div>
+
+        <div class="section-title">대운 흐름 (Age Luck)</div>
+        <div id="luck-list" class="scroll-row"></div>
+
+        <div id="seun-area" style="display:none;">
+            <div class="section-title">세운 (Yearly Luck)</div>
+            <div id="seun-list" class="grid-row" style="display:grid;"></div>
         </div>
+
+        <div id="wolun-area" style="display:none;">
+            <div class="section-title">월운 (Monthly Luck)</div>
+            <div id="wolun-list" class="grid-row" style="display:grid; grid-template-columns: repeat(4, 1fr);"></div>
+        </div>
+
+        <button onclick="saveAsImage()" style="background:#27ae60; width:100%; margin-top:20px;">결과 이미지 저장</button>
     </div>
 </div>
 
 <script>
-// 1. 기초 데이터 사전
 const GANS = "甲乙丙丁戊己庚辛壬癸", ZHIS = "子丑寅卯辰巳午未申酉戌亥";
 const COLORS = {'甲':'wood','乙':'wood','寅':'wood','卯':'wood','丙':'fire','丁':'fire','巳':'fire','午':'fire','戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth','庚':'metal','辛':'metal','申':'metal','酉':'metal','壬':'water','癸':'water','亥':'water','子':'water'};
+const HIDDEN = {'子':['壬','','癸'], '丑':['癸','辛','己'], '寅':['戊','丙','甲'], '卯':['甲','','乙'], '辰':['乙','癸','戊'], '巳':['戊','庚','丙'], '午':['丙','己','丁'], '未':['丁','乙','己'], '申':['戊','壬','庚'], '酉':['庚','','辛'], '戌':['辛','일','戊'], '亥':['戊','甲','壬']};
 
-// 지장간 데이터 (초기-중기-정기)
-const HIDDEN = {
-    '子':['壬','','癸'], '丑':['癸','辛','己'], '寅':['戊','丙','甲'], '卯':['甲','','乙'], '辰':['乙','癸','戊'], '巳':['戊','庚','丙'], 
-    '午':['丙','己','丁'], '未':['丁','乙','己'], '申':['戊','壬','庚'], '酉':['庚','','辛'], '戌':['辛','丁','戊'], '亥':['戊','甲','壬']
-};
+let baziData = null, monthlyData = null, userLon = null;
 
-// 12운성 테이블 (천간 x 지지)
-const TWELVE_MAP = {
-    '甲': { '亥':'장생','戌':'양','酉':'태','申':'절','未':'묘','午':'사','巳':'병','辰':'쇠','卯':'제왕','寅':'건록','丑':'관대','子':'목욕' },
-    '乙': { '午':'장생','巳':'양','辰':'태','卯':'절','寅':'묘','丑':'사','子':'병','亥':'쇠','戌':'제왕','酉':'건록','申':'관대','未':'목욕' },
-    '丙': { '寅':'장생','丑':'양','子':'태','亥':'절','戌':'묘','酉':'사','申':'병','未':'쇠','午':'제왕','巳':'건록','辰':'관대','卯':'목욕' },
-    '丁': { '酉':'장생','申':'양','未':'태','午':'절','巳':'묘','辰':'사','卯':'병','寅':'쇠','丑':'제왕','子':'건록','亥':'관대','戌':'목욕' },
-    '戊': { '寅':'장생','丑':'양','子':'태','亥':'절','戌':'묘','酉':'사','申':'병','未':'쇠','午':'제왕','巳':'건록','辰':'관대','卯':'목욕' },
-    '己': { '酉':'장생','申':'양','未':'태','午':'절','巳':'묘','辰':'사','卯':'병','寅':'쇠','丑':'제왕','子':'건록','亥':'관대','戌':'목욕' },
-    '庚': { '巳':'장생','辰':'양','卯':'태','寅':'절','丑':'묘','子':'사','亥':'병','戌':'쇠','酉':'제왕','申':'건록','未':'관대','午':'목욕' },
-    '辛': { '子':'장생','亥':'양','戌':'태','酉':'절','申':'묘','未':'사','午':'병','巳':'쇠','辰':'제왕','卯':'건록','寅':'관대','丑':'목욕' },
-    '壬': { '申':'장생','未':'양','午':'태','巳':'절','辰':'묘','卯':'사','寅':'병','丑':'쇠','子':'제왕','亥':'건록','戌':'관대','酉':'목욕' },
-    '癸': { '卯':'장생','寅':'양','丑':'태','子':'절','亥':'묘','戌':'사','酉':'병','申':'쇠','未':'제왕','午':'건록','巳':'관대','辰':'목욕' }
-};
-
-// 십신 계산 함수
-function getShinsin(me, target) {
-    const meIdx = GANS.indexOf(me), tgIdx = GANS.indexOf(target);
-    const meFive = Math.floor(meIdx/2), tgFive = Math.floor(tgIdx/2);
-    const isSamePolar = (meIdx % 2 === tgIdx % 2);
-    const diff = (tgFive - meFive + 5) % 5;
-    
-    if (diff === 0) return isSamePolar ? "비견" : "겁재";
-    if (diff === 1) return isSamePolar ? "식신" : "상관";
-    if (diff === 2) return isSamePolar ? "편재" : "정재";
-    if (diff === 3) return isSamePolar ? "편관" : "정관";
-    if (diff === 4) return isSamePolar ? "편인" : "정인";
-}
-
-// 핵심 신살 (간략형)
-function getSal(dayZhi, targetZhi) {
-    const maps = {
-        '寅':{'午':'화개','戌':'화개','申':'역마','子':'재살','卯':'도화'},
-        '申':{'子':'화개','辰':'화개','寅':'역마','午':'재살','酉':'도화'},
-        '巳':{'酉':'화개','丑':'화개','亥':'역마','卯':'재살','午':'도화'},
-        '亥':{'卯':'화개','未':'화개','巳':'역마','酉':'재살','子':'도화'}
-    };
-    // 원리: 삼합 기준 (실제 구현은 더 복잡하지만 핵심 역마/도화/화개 위주 표시)
-    return ""; // 공간상 생략하거나 로직 확장 가능
-}
-
-let baziData = null, userLon = null;
 async function init() {
-    const URL = 'https://raw.githubusercontent.com/bongjae0624-ui/bazi-Calculator/refs/heads/main/bazi_data_1900_2100_with_terms.json';
-    try { baziData = await (await fetch(URL)).json(); } catch(e) {}
+    // 실제 GitHub URL로 교체하세요!
+    const BASE = 'https://raw.githubusercontent.com/bongjae0624-ui/bazi-Calculator/refs/heads/main/';
+    try {
+        const [res1, res2] = await Promise.all([
+            fetch(BASE + 'bazi_data_1900_2100_with_terms.json'),
+            fetch(BASE + 'monthly_data.json')
+        ]);
+        baziData = await res1.json();
+        monthlyData = await res2.json();
+    } catch(e) { console.log("데이터 로드 실패 - 로컬 테스트용 로직 실행"); }
 }
 init();
 
@@ -138,74 +102,110 @@ async function searchLocation() {
     const q = document.getElementById('addr-input').value;
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
     const data = await res.json();
-    if(data[0]) { userLon = parseFloat(data[0].lon); alert("Location Set"); }
+    if(data[0]) {
+        userLon = parseFloat(data[0].lon);
+        document.getElementById('geo-info').innerText = `📍 ${data[0].display_name.split(',')[0]} (${userLon.toFixed(2)}°)`;
+    }
 }
 
 function analyze() {
-    if(!baziData) return;
+    if(!baziData) return alert("데이터를 불러오는 중입니다...");
     const dtVal = document.getElementById('birth-dt').value;
-    const isNoTime = document.getElementById('no-time').checked;
-    let targetDt = new Date(dtVal);
-    
-    // 경도 보정
+    if(!dtVal) return alert("생년월일을 입력하세요.");
+
+    let tDt = new Date(dtVal);
     if(userLon) {
-        const stdLon = (targetDt.getTimezoneOffset()*-1)/4;
-        targetDt = new Date(targetDt.getTime() + (userLon - stdLon)*4*60000);
+        const stdLon = (tDt.getTimezoneOffset()*-1)/4;
+        tDt = new Date(tDt.getTime() + (userLon - stdLon)*4*60000);
     }
+
+    const bY = tDt.getFullYear(), bM = tDt.getMonth()+1, bD = tDt.getDate();
+    const raw = baziData[bY][bM][bD].split('|');
+    const yP = raw[0], mP = raw[1], dP = raw[2];
+    const hP = document.getElementById('no-time').checked ? "??" : getHourPillar(dP[0], tDt.getHours());
+
+    // 명식 업데이트
+    updateCell('y', yP, dP[0]); updateCell('m', mP, dP[0]); updateCell('d', dP, dP[0], true); updateCell('h', hP, dP[0]);
+
+    // 대운 산출 (핵심 로직 추가)
+    const isYang = "甲丙戊庚壬".includes(yP[0]);
+    const isFwd = (document.getElementById('gender').value === 'M' && isYang) || (document.getElementById('gender').value === 'F' && !isYang);
+    const termDt = isFwd ? new Date(raw[6].replace(/-/g, "/")) : new Date(raw[4].replace(/-/g, "/"));
+    let lNum = Math.round(Math.abs(termDt - tDt) / (1000*60*60*24*3));
+    lNum = Math.max(1, Math.min(10, lNum));
+
+    renderLuck(bY, lNum, isFwd, mP);
+    document.getElementById('result').style.display = 'block';
+}
+
+function updateCell(id, p, me, isMaster=false) {
+    const gEl = document.getElementById(`${id}-gan`), zEl = document.getElementById(`${id}-zhi`), ssEl = document.getElementById(`${id}-ss`), subEl = document.getElementById(`${id}-sub`);
+    if(p === "??") { gEl.innerText="?"; gEl.className="cell unknown"; zEl.innerText="?"; zEl.className="cell unknown"; return; }
     
-    // 야자시
-    let bY = targetDt.getFullYear(), bM = targetDt.getMonth()+1, bD = targetDt.getDate();
-    if(!isNoTime && document.getElementById('jasi-type').value === 'Y' && targetDt.getHours() >= 23) {
-        const next = new Date(targetDt.getTime() + 86400000);
-        bY = next.getFullYear(); bM = next.getMonth()+1; bD = next.getDate();
+    gEl.innerText = p[0]; gEl.className = `cell ${COLORS[p[0]]} ${isMaster?'master':''}`;
+    zEl.innerText = p[1]; zEl.className = `cell ${COLORS[p[1]]}`;
+    if(id !== 'd') ssEl.innerText = getShinsin(me, p[0]);
+    subEl.innerHTML = `<div style="color:#777">${HIDDEN[p[1]].join(' ')}</div>`;
+}
+
+function renderLuck(startYear, lNum, isFwd, mP) {
+    const list = document.getElementById('luck-list'); list.innerHTML = '';
+    let cG = GANS.indexOf(mP[0]), cZ = ZHIS.indexOf(mP[1]);
+
+    for (let i = 0; i < 10; i++) {
+        if (isFwd) { cG=(cG+1)%10; cZ=(cZ+1)%12; } else { cG=(cG+9)%10; cZ=(cZ+11)%12; }
+        const g = GANS[cG], z = ZHIS[cZ];
+        const age = lNum + (i * 10);
+        list.innerHTML += `<div class="luck-item" onclick="showSeun(${startYear + age}, this)">
+            <div style="font-size:11px;">${age}세</div>
+            <div style="font-size:18px; font-weight:bold; color:${getCol(g)}">${g}${z}</div></div>`;
     }
+}
 
-    try {
-        const raw = baziData[bY][bM][bD].split('|');
-        const yP = raw[0], mP = raw[1], dP = raw[2];
-        const hP = isNoTime ? "??" : getHourPillar(dP[0], targetDt.getHours());
-        const me = dP[0];
+function showSeun(sy, obj) {
+    document.querySelectorAll('.luck-item').forEach(e => e.classList.remove('active'));
+    obj.classList.add('active');
+    document.getElementById('seun-area').style.display = 'block';
+    const l = document.getElementById('seun-list'); l.innerHTML = '';
+    for(let i=0; i<10; i++) {
+        const yr = sy + i; const off = (yr - 1900 + 36) % 60;
+        l.innerHTML += `<div class="mini-card" onclick="showWolun(${yr}, this)">${yr}<br>${GANS[off%10]}${ZHIS[off%12]}</div>`;
+    }
+}
 
-        const update = (id, p) => {
-            const gan = p[0], zhi = p[1];
-            const gEl = document.getElementById(`${id}-gan`), zEl = document.getElementById(`${id}-zhi`);
-            const ssEl = document.getElementById(`${id}-ss`), subEl = document.getElementById(`${id}-sub`);
-
-            if(p === "??") {
-                gEl.innerText = "?"; gEl.className = "cell unknown";
-                zEl.innerText = "?"; zEl.className = "cell unknown";
-                return;
-            }
-
-            gEl.innerText = gan; gEl.className = `cell ${COLORS[gan]} ${id==='d'?'master':''}`;
-            zEl.innerText = zhi; zEl.className = `cell ${COLORS[zhi]}`;
-            
-            // 십신 (일간 제외)
-            if(id !== 'd') ssEl.innerText = getShinsin(me, gan);
-            
-            // 지장간 / 12운성
-            const hidden = HIDDEN[zhi].filter(x => x !== "").join(' ');
-            const un = TWELVE_MAP[me][zhi] || "";
-            subEl.innerHTML = `<div class="hidden-gan">${hidden}</div><div class="twelve-un">${un}</div>`;
-        };
-
-        update('y', yP); update('m', mP); update('d', dP); update('h', hP);
-        
-        // 대운 생성 (기존 로직 동일)
-        renderLuck(bY, dP, mP, targetDt, raw[4], raw[6]);
-        document.getElementById('result').style.display = 'block';
-    } catch(e) { console.error(e); }
+function showWolun(yr, obj) {
+    document.querySelectorAll('.mini-card').forEach(e => e.classList.remove('active'));
+    obj.classList.add('active');
+    document.getElementById('wolun-area').style.display = 'block';
+    const l = document.getElementById('wolun-list'); l.innerHTML = '';
+    for(let m=1; m<=12; m++) l.innerHTML += `<div class="mini-card"><b>${m}월</b><br>${monthlyData[yr] ? monthlyData[yr][m] : '??'}</div>`;
 }
 
 function getHourPillar(dayGan, hr) {
     let zIdx = Math.floor((hr + 1) / 2) % 12;
-    const startMap = { '甲': 0, '己': 0, '乙': 2, '庚': 2, '丙': 4, '辛': 4, '丁': 6, '壬': 6, '戊': 8, '癸': 8 };
+    const startMap = {'甲':0,'己':0,'乙':2,'庚':2,'丙':4,'辛':4,'丁':6,'壬':6,'戊':8,'癸':8};
     return GANS[(startMap[dayGan] + zIdx) % 10] + ZHIS[zIdx];
 }
 
-function renderLuck(y, dP, mP, dt, pT, nT) {
-    const isYang = "甲丙戊庚壬".includes(dP[0]); // 년간 기준이 정석이나 편의상 일간 기준 처리 가능 (로직에 맞춰 수정)
-    // 실제 대운 로직... (생략 및 기존 코드 유지)
+function getShinsin(me, tg) {
+    const mI = GANS.indexOf(me), tI = GANS.indexOf(tg);
+    const diff = (Math.floor(tI/2) - Math.floor(mI/2) + 5) % 5;
+    const same = (mI % 2 === tI % 2);
+    return [["비겁","비견","겁재"],["식상","식신","상관"],["재성","편재","정재"],["관성","편관","정관"],["인성","편인","정인"]][diff][same?1:2];
+}
+
+function getCol(c) {
+    const t = COLORS[c];
+    return t==='wood'?'#27ae60':t==='fire'?'#e74c3c':t==='earth'?'#f1c40f':t==='metal'?'#7f8c8d':'#2c3e50';
+}
+
+function saveAsImage() {
+    html2canvas(document.querySelector(".card")).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'bazi-chart.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 }
 </script>
 </body>
