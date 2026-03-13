@@ -2,21 +2,180 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Data Generator - Lunar Library</title>
-    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
-</head>
-<body style="text-align: center; padding-top: 50px; font-family: sans-serif;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bazi Master Pro - 정밀 대운수 버전</title>
+    <style>
+        :root {
+            --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
+            --metal: #95a5a6; --water: #2c3e50; --bg: #f0f2f5;
+        }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .card { max-width: 550px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box; }
+        
+        h2 { text-align: center; margin-bottom: 25px; color: #333; letter-spacing: -1px; }
+        .input-box { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
+        select, input { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 15px; outline: none; }
+        input[type="datetime-local"] { flex: 1; min-width: 180px; }
+        button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:active { transform: scale(0.98); }
 
-    <h1>데이터 추출 전용 페이지</h1>
-    <p>이 페이지가 열린 상태에서 <b>F12</b>를 눌러 <b>Console</b> 탭에 들어간 뒤,</p>
-    <p>복사한 추출 코드를 붙여넣고 <b>Enter</b>를 치세요.</p>
+        /* 사주 팔자 그리드 */
+        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 30px; }
+        .column { display: flex; flex-direction: column; gap: 5px; }
+        .label { text-align: center; font-size: 11px; color: #999; font-weight: bold; margin-bottom: 2px; }
+        .cell { height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .master { border: 4px solid #000; box-sizing: border-box; }
+
+        /* 대운 섹션 */
+        .section-title { font-size: 15px; font-weight: bold; margin: 20px 0 12px; color: #444; border-left: 4px solid #000; padding-left: 10px; }
+        .luck-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; scrollbar-width: thin; }
+        .luck-item { min-width: 65px; text-align: center; background: #fafafa; padding: 12px 5px; border-radius: 15px; border: 1px solid #eee; flex-shrink: 0; }
+        .luck-age { font-size: 12px; font-weight: bold; color: #000; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .luck-ganzhi { font-size: 19px; font-weight: 800; display: flex; flex-direction: column; gap: 4px; }
+
+        /* 색상 클래스 */
+        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
+        .color-text { font-weight: 900; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>MANSEURYEOK PRO</h2>
     
-    <div style="color: blue; font-weight: bold; margin-top: 20px;">
-        ※ 라이브러리 로드 상태: 
-        <script>
-            document.write(typeof Solar !== 'undefined' ? "✅ 준비 완료" : "❌ 로드 실패");
-        </script>
+    <div class="input-box">
+        <select id="gender">
+            <option value="M">남성 (Male)</option>
+            <option value="F">여성 (Female)</option>
+        </select>
+        <input type="datetime-local" id="birth-dt">
+        <button onclick="analyze()">사주 및 정밀 대운 분석</button>
     </div>
 
+    <div id="result" style="display:none;">
+        <div class="section-title">사주 명식 (Bazi Chart)</div>
+        <div class="bazi-grid">
+            <div class="column"><div class="label">시 (Hour)</div><div id="h-gan" class="cell"></div><div id="h-zhi" class="cell"></div></div>
+            <div class="column"><div class="label">일 (Day)</div><div id="d-gan" class="cell master"></div><div id="d-zhi" class="cell"></div></div>
+            <div class="column"><div class="label">월 (Month)</div><div id="m-gan" class="cell"></div><div id="m-zhi" class="cell"></div></div>
+            <div class="column"><div class="label">년 (Year)</div><div id="y-gan" class="cell"></div><div id="y-zhi" class="cell"></div></div>
+        </div>
+
+        <div class="section-title" id="luck-title">대운 흐름 (Luck Cycle)</div>
+        <div id="luck-list" class="luck-container"></div>
+    </div>
+</div>
+
+<script>
+let baziData = null;
+const GANS = "甲乙丙丁戊己庚辛壬癸";
+const ZHIS = "子丑寅卯辰巳午未申酉戌亥";
+const COLORS = {'甲':'wood','乙':'wood','寅':'wood','卯':'wood','丙':'fire','丁':'fire','巳':'fire','午':'fire','戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth','庚':'metal','辛':'metal','申':'metal','酉':'metal','壬':'water','癸':'water','亥':'water','子':'water'};
+
+// 1. 데이터 로드 (본인의 GitHub Raw 주소로 교체 필수!)
+async function init() {
+    const URL = 'https://raw.githubusercontent.com/사용자이름/저장소/main/bazi_data_1900_2100_with_terms.json';
+    try {
+        const res = await fetch(URL);
+        baziData = await res.json();
+        console.log("✅ 데이터 로드 성공");
+    } catch(e) { 
+        alert("데이터 로드 실패! GitHub 주소를 확인하세요.");
+    }
+}
+init();
+
+// 시주 계산 함수
+function getHourPillar(dayGan, hour) {
+    let zIdx = Math.floor((hour + 1) / 2) % 12;
+    const startMap = { '甲': 0, '己': 0, '乙': 2, '庚': 2, '丙': 4, '辛': 4, '丁': 6, '壬': 6, '戊': 8, '癸': 8 };
+    let gIdx = (startMap[dayGan] + zIdx) % 10;
+    return GANS[gIdx] + ZHIS[zIdx];
+}
+
+function getColorCode(char) {
+    const type = COLORS[char];
+    if(type === 'wood') return '#27ae60';
+    if(type === 'fire') return '#e74c3c';
+    if(type === 'earth') return '#f1c40f';
+    if(type === 'metal') return '#7f8c8d';
+    if(type === 'water') return '#2c3e50';
+    return '#000';
+}
+
+function analyze() {
+    if (!baziData) return alert("데이터 로딩 중입니다...");
+    
+    const dtVal = document.getElementById('birth-dt').value;
+    if(!dtVal) return alert("생년월일시를 입력해주세요.");
+    
+    const birthDt = new Date(dtVal);
+    const gender = document.getElementById('gender').value;
+    
+    const y = birthDt.getFullYear(), m = birthDt.getMonth()+1, d = birthDt.getDate(), h = birthDt.getHours();
+
+    try {
+        // 데이터 구조: 년|월|일|이전절기명|이전절기시각|다음절기명|다음절기시각
+        const raw = baziData[y][m][d].split('|');
+        const yP = raw[0], mP = raw[1], dP = raw[2];
+        const prevTermStr = raw[4], nextTermStr = raw[6];
+        const hP = getHourPillar(dP[0], h);
+
+        // 1. 명식 표시
+        const update = (id, pillar, isMaster = false) => {
+            const g = document.getElementById(`${id}-gan`), z = document.getElementById(`${id}-zhi`);
+            g.innerText = pillar[0]; g.className = `cell ${COLORS[pillar[0]]} ${isMaster ? 'master' : ''}`;
+            z.innerText = pillar[1]; z.className = `cell ${COLORS[pillar[1]]}`;
+        };
+        update('y', yP); update('m', mP); update('d', dP, true); update('h', hP);
+
+        // 2. 블로그 방식 대운 계산 (3분법)
+        const isYangYear = "甲丙戊庚壬".includes(yP[0]);
+        const isForward = (gender === 'M' && isYangYear) || (gender === 'F' && !isYangYear);
+
+        // 순행은 다음 절기까지, 역행은 이전 절기까지의 거리 계산
+        const targetTermDt = isForward ? new Date(nextTermStr.replace(/-/g, "/")) : new Date(prevTermStr.replace(/-/g, "/"));
+        const diffMs = Math.abs(targetTermDt - birthDt);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        
+        // 대운수 (날짜 / 3) 반올림
+        let luckNum = Math.round(diffDays / 3);
+        if (luckNum === 0) luckNum = 1; // 최소 대운수는 1
+        if (luckNum > 10) luckNum = 10; // 최대 대운수는 10
+
+        document.getElementById('luck-title').innerText = `대운 흐름 (${luckNum}대운)`;
+
+        // 3. 대운 간지 나열 (월주 기준)
+        const luckListEl = document.getElementById('luck-list');
+        luckListEl.innerHTML = '';
+        
+        let curGIdx = GANS.indexOf(mP[0]);
+        let curZIdx = ZHIS.indexOf(mP[1]);
+
+        for (let i = 0; i < 10; i++) {
+            if (isForward) {
+                curGIdx = (curGIdx + 1) % 10; curZIdx = (curZIdx + 1) % 12;
+            } else {
+                curGIdx = (curGIdx + 9) % 10; curZIdx = (curZIdx + 11) % 12;
+            }
+            
+            const g = GANS[curGIdx], z = ZHIS[curZIdx];
+            luckListEl.innerHTML += `
+                <div class="luck-item">
+                    <div class="luck-age">${luckNum + (i * 10)}</div>
+                    <div class="luck-ganzhi">
+                        <span style="color:${getColorCode(g)}">${g}</span>
+                        <span style="color:${getColorCode(z)}">${z}</span>
+                    </div>
+                </div>`;
+        }
+
+        document.getElementById('result').style.display = 'block';
+    } catch(e) {
+        console.error(e);
+        alert("분석 중 오류가 발생했습니다. 데이터를 확인해주세요.");
+    }
+}
+</script>
 </body>
 </html>
