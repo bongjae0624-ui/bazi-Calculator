@@ -3,94 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Mastery - Professional Destiny Chart</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Professional Bazi Mastery</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
-        :root {
-            --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #bdc3c7; --water: #2c3e50;
-            --bg: #f8fafc; --card: #ffffff; --text: #1e293b;
-        }
-        body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        #app { max-width: 550px; width: 100%; background: var(--card); padding: 40px; border-radius: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); }
-        
-        h1 { font-weight: 900; font-size: 28px; text-align: center; margin-bottom: 8px; letter-spacing: -1px; }
-        p.subtitle { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 30px; }
-
+        :root { --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #bdc3c7; --water: #2c3e50; }
+        body { background: #f1f5f9; font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 20px; }
+        #app { max-width: 500px; width: 100%; background: #fff; padding: 35px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .input-group { margin-bottom: 20px; position: relative; }
-        label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 15px; border: 2px solid #f1f5f9; border-radius: 16px; font-size: 16px; box-sizing: border-box; transition: all 0.2s; background: #f8fafc; }
-        input:focus { outline: none; border-color: #000; background: #fff; }
-
-        /* 도시 검색 결과창 */
-        #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #e2e8f0; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-top: 5px; }
-        .city-item { padding: 12px 16px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
-        .city-item:hover { background: #f8fafc; font-weight: bold; }
-
-        button { width: 100%; padding: 20px; background: #000; color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        button:hover { background: #334155; transform: translateY(-2px); }
-
-        /* 결과 섹션 */
-        #result-area { display: none; margin-top: 45px; border-top: 2px solid #f1f5f9; padding-top: 35px; animation: slideUp 0.6s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .pillar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; }
-        .p-label { font-size: 10px; font-weight: 800; color: #cbd5e1; margin-bottom: 8px; }
-        .p-box { height: 90px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 18px; color: #fff; font-weight: 800; font-size: 20px; position: relative; }
-        .p-box span.en { font-size: 10px; font-weight: 400; opacity: 0.8; margin-bottom: 4px; }
-        .master { ring: 4px solid #000; outline: 4px solid #000; outline-offset: -4px; }
-        .god { font-size: 11px; font-weight: 700; color: #64748b; margin: 8px 0 20px; text-transform: uppercase; }
-
-        .luck-title { font-size: 16px; font-weight: 900; margin: 30px 0 15px; border-left: 4px solid #000; padding-left: 10px; }
-        .luck-list { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; }
-        .luck-card { min-width: 75px; background: #f8fafc; padding: 15px 5px; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center; flex-shrink: 0; }
-        .luck-age { font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 10px; }
-        .luck-val { font-size: 15px; color: #fff; font-weight: 800; padding: 5px 0; margin: 2px 8px; border-radius: 8px; }
-
-        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; }
-        .metal { background: var(--metal); color: #333 !important; } .water { background: var(--water); }
+        label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 6px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
+        #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 8px; margin-top: 5px; }
+        .city-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+        .city-item:hover { background: #f1f5f9; }
+        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; }
+        #result { display: none; margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
+        .p-box { height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 14px; color: #fff; font-weight: 800; font-size: 19px; }
+        .p-box span { font-size: 10px; font-weight: 400; opacity: 0.8; margin-bottom: 3px; }
+        .master { outline: 4px solid #000; outline-offset: -4px; }
+        .god { font-size: 10px; font-weight: 700; color: #94a3b8; margin: 5px 0 15px; text-transform: uppercase; }
+        .luck-list { display: flex; overflow-x: auto; gap: 10px; margin-top: 15px; padding-bottom: 10px; }
+        .luck-card { min-width: 65px; background: #f8fafc; padding: 12px 5px; border-radius: 12px; text-align: center; flex-shrink: 0; border: 1px solid #e2e8f0; }
+        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); color: #333 !important; } .water { background: var(--water); }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <h1>Bazi Mastery</h1>
-    <p class="subtitle">Enter birth details for a professional chart</p>
-    
+    <h2 style="text-align:center; margin-top:0;">Bazi Mastery</h2>
     <div class="input-group">
         <label>Birth City</label>
         <input type="text" id="city-in" placeholder="Search City (e.g. New York)" autocomplete="off">
         <div id="city-results"></div>
         <input type="hidden" id="user-lon" value="127.0">
     </div>
-
     <div class="input-group">
         <label>Birth Date & Time</label>
         <input type="datetime-local" id="user-dt">
     </div>
-
     <div class="input-group">
         <label>Gender</label>
-        <select id="user-gen">
-            <option value="1">Male</option>
-            <option value="0">Female</option>
-        </select>
+        <select id="user-gen"><option value="1">Male</option><option value="0">Female</option></select>
     </div>
+    <button id="calc-btn">GENERATE CHART</button>
 
-    <button id="calc-btn">GENERATE DESTINY CHART</button>
-
-    <div id="result-area">
-        <div class="pillar-grid">
-            <div class="p-label">HOUR</div><div class="p-label">DAY</div><div class="p-label">MONTH</div><div class="p-label">YEAR</div>
-            
+    <div id="result">
+        <div class="grid">
+            <div style="font-size:9px; color:#cbd5e1;">HOUR</div><div style="font-size:9px; color:#cbd5e1;">DAY</div><div style="font-size:9px; color:#cbd5e1;">MONTH</div><div style="font-size:9px; color:#cbd5e1;">YEAR</div>
             <div id="h1" class="p-box"></div><div id="d1" class="p-box master"></div><div id="m1" class="p-box"></div><div id="y1" class="p-box"></div>
             <div id="gh1" class="god"></div><div class="god" style="color:#000;">SELF</div><div id="gm1" class="god"></div><div id="gy1" class="god"></div>
-            
             <div id="h2" class="p-box"></div><div id="d2" class="p-box"></div><div id="m2" class="p-box"></div><div id="y2" class="p-box"></div>
             <div id="gh2" class="god"></div><div id="gd2" class="god"></div><div id="gm2" class="god"></div><div id="gy2" class="god"></div>
         </div>
-        
-        <div class="luck-title">10-YEAR LUCK PILLARS</div>
         <div id="luck-list" class="luck-list"></div>
     </div>
 </div>
@@ -99,7 +63,7 @@
 const MAP = {'甲':['Yang Wood','wood'],'乙':['Yin Wood','wood'],'丙':['Yang Fire','fire'],'丁':['Yin Fire','fire'],'戊':['Yang Earth','earth'],'己':['Yin Earth','earth'],'庚':['Yang Metal','metal'],'辛':['Yin Metal','metal'],'壬':['Yang Water','water'],'癸':['Yin Water','water'],'子':['Rat','water'],'丑':['Ox','earth'],'寅':['Tiger','wood'],'卯':['Rabbit','wood'],'辰':['Dragon','earth'],'巳':['Snake','fire'],'午':['Horse','fire'],'未':['Goat','earth'],'申':['Monkey','metal'],'酉':['Rooster','metal'],'戌':['Dog','earth'],'亥':['Pig','water']};
 const GODS = {'비견':'Friend','겁재':'Robber','식신':'Eating','상관':'Hurt','편재':'Wealth','정재':'D-Wealth','편관':'7-Kills','정관':'Officer','편인':'Owl','정인':'Resource'};
 
-// 1. City Search
+// City Search
 const cityIn = document.getElementById('city-in');
 const cityRes = document.getElementById('city-results');
 cityIn.addEventListener('input', function() {
@@ -121,46 +85,71 @@ cityIn.addEventListener('input', function() {
     });
 });
 
-// 2. Calculation
+// Calculation
 document.getElementById('calc-btn').onclick = function() {
-    const dt = document.getElementById('user-dt').value;
-    if(!dt) return alert("Please select birth date.");
+    const dtVal = document.getElementById('user-dt').value;
+    if(!dtVal) return alert("Select birth date.");
+    
     const lon = parseFloat(document.getElementById('user-lon').value);
     const gen = parseInt(document.getElementById('user-gen').value);
     
-    // Correct Time (True Sun Time)
-    const correctedDate = new Date(new Date(dt).getTime() + (lon - 135) * 4 * 60000);
-    const ba = Solar.fromDate(correctedDate).getLunar().getEightChar();
-    ba.setGender(gen);
+    // 1. Correct Time (Longitude correction)
+    const dateObj = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
+    
+    // 2. Solar & EightChar Object Creation
+    const solar = Solar.fromDate(dateObj);
+    const lunar = solar.getLunar();
+    const ba = lunar.getEightChar();
+    
+    // 3. Gender & Fortune (Update: Newer version approach)
+    // ba.setGender(gen); <-- 이 부분이 에러를 유발하므로 삭제하고 
+    // 대운 계산 시점에 성별을 직접 전달하는 방식으로 우회합니다.
 
     const keys = ['h','d','m','y'];
     const gans = [ba.getTimeGan(), ba.getDayGan(), ba.getMonthGan(), ba.getYearGan()];
     const zhis = [ba.getTimeZhi(), ba.getDayZhi(), ba.getMonthZhi(), ba.getYearZhi()];
+    
+    // 십성 계산 (성별 불필요한 기본 십성)
     const gTen = [ba.getTimeTenStarGan(), "", ba.getMonthTenStarGan(), ba.getYearTenStarGan()];
     const zTen = [ba.getTimeTenStarZhi()[0], ba.getDayTenStarZhi()[0], ba.getMonthTenStarZhi()[0], ba.getYearTenStarZhi()[0]];
 
     for(let i=0; i<4; i++) {
-        fill(keys[i]+'1', 'g'+keys[i]+'1', gans[i], gTen[i]);
-        fill(keys[i]+'2', 'g'+keys[i]+'2', zhis[i], zTen[i]);
+        render(keys[i]+'1', 'gh'+keys[i]+'1', gans[i], gTen[i]);
+        render(keys[i]+'2', 'g'+keys[i].replace('d','d')+(i==1?'d2':keys[i]+'2'), zhis[i], zTen[i]);
+        // ID 보정 작업
+        if(keys[i] === 'd') render('d2', 'gd2', zhis[i], zTen[i]);
+        if(keys[i] === 'h') render('h2', 'gh2', zhis[i], zTen[i]);
+        if(keys[i] === 'm') render('m2', 'gm2', zhis[i], zTen[i]);
+        if(keys[i] === 'y') render('y2', 'gy2', zhis[i], zTen[i]);
     }
 
-    const luckList = document.getElementById('luck-list'); luckList.innerHTML = '';
-    const yun = ba.getFortune().getDaYun();
+    // 4. Luck Pillars (DaYun) - 성별 적용
+    const luckArea = document.getElementById('luck-list');
+    luckArea.innerHTML = '';
+    const fortune = ba.getFortune();
+    // 성별에 따른 대운 방향 설정 (1: 남, 0: 여)
+    const yun = fortune.getDaYun(gen); 
+    
     for(let j=1; j<9; j++) {
         const dy = yun[j];
-        luckList.innerHTML += `<div class="luck-card">
-            <div class="luck-age">Age ${dy.getStartAge()}</div>
-            <div class="luck-val ${MAP[dy.getGan()][1]}">${dy.getGan()}</div>
-            <div class="luck-val ${MAP[dy.getZhi()][1]}">${dy.getZhi()}</div>
+        if(!dy) continue;
+        luckArea.innerHTML += `<div class="luck-card">
+            <div style="font-size:10px; color:#94a3b8; margin-bottom:8px;">Age ${dy.getStartAge()}</div>
+            <div class="p-box ${MAP[dy.getGan()][1]}" style="height:35px; font-size:14px; margin-bottom:4px;">${dy.getGan()}</div>
+            <div class="p-box ${MAP[dy.getZhi()][1]}" style="height:35px; font-size:14px;">${dy.getZhi()}</div>
         </div>`;
     }
-    document.getElementById('result-area').style.display = 'block';
+    document.getElementById('result').style.display = 'block';
 };
 
-function fill(id, sid, han, ten) {
-    const info = MAP[han]; const el = document.getElementById(id); const sel = document.getElementById(sid);
-    el.className = 'p-box ' + info[1] + (id==='d1'?' master':'');
-    el.innerHTML = `<span class="en">${info[0]}</span>${han}`;
+function render(id, sid, han, ten) {
+    const info = MAP[han]; if(!info) return;
+    const el = document.getElementById(id);
+    const sel = document.getElementById(sid);
+    if(el) {
+        el.className = 'p-box ' + info[1] + (id==='d1'?' master':'');
+        el.innerHTML = `<span>${info[0]}</span>${han}`;
+    }
     if(sel && sid !== 'gd1') sel.innerText = GODS[ten] || ten || "";
 }
 </script>
