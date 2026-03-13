@@ -3,110 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Bazi Viewer</title>
+    <title>Bazi Mastery - Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root {
             --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
-            --metal: #7f8c8d; --water: #2c3e50; --bg: #f8f9fa;
+            --metal: #7f8c8d; --water: #2c3e50; --bg: #f4f7f6;
         }
-        body { background: var(--bg); font-family: 'Apple SD Gothic Neo', sans-serif; display: flex; justify-content: center; padding: 20px; }
-        #container { max-width: 500px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        #container { max-width: 500px; width: 100%; background: #fff; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .input-group { margin-bottom: 20px; display: flex; flex-direction: column; }
+        input { padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
         
-        .input-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-        label { font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-        
-        button { width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:hover { background: #000; }
+        #result { display: none; margin-top: 30px; }
+        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
+        .label { font-size: 11px; color: #bbb; font-weight: bold; margin-bottom: 5px; }
+        .cell { height: 85px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: bold; }
+        .master { outline: 4px solid #000; outline-offset: -4px; }
 
-        #result { display: none; margin-top: 30px; text-align: center; }
-        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .label { font-size: 12px; color: #999; margin-bottom: 5px; font-weight: bold; }
-        
-        /* 오행 색상 입힌 셀 */
-        .cell { height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; font-weight: bold; }
-        .master { border: 3px solid #000; box-sizing: border-box; } /* 일간 강조 */
-
-        /* 색상 클래스 */
-        .wood { background: var(--wood); }
-        .fire { background: var(--fire); }
-        .earth { background: var(--earth); color: #333 !important; }
-        .metal { background: var(--metal); }
-        .water { background: var(--water); }
+        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
     </style>
 </head>
 <body>
 
 <div id="container">
-    <h2>BAZI VIEWER</h2>
     <div class="input-group">
-        <label>생년월일시 (Birth Date & Time)</label>
         <input type="datetime-local" id="birth-dt">
     </div>
-    <button onclick="showBazi()">명식 추출하기</button>
+    <button onclick="calculateBazi()">명식 확인하기</button>
 
     <div id="result">
         <div class="bazi-grid">
-            <div class="label">시(Hour)</div><div class="label">일(Day)</div><div class="label">월(Month)</div><div class="label">년(Year)</div>
+            <div class="label">HOUR</div><div class="label">DAY</div><div class="label">MONTH</div><div class="label">YEAR</div>
             
-            <div id="h-gan" class="cell"></div>
-            <div id="d-gan" class="cell master"></div>
-            <div id="m-gan" class="cell"></div>
-            <div id="y-gan" class="cell"></div>
-            
-            <div id="h-zhi" class="cell"></div>
-            <div id="d-zhi" class="cell"></div>
-            <div id="m-zhi" class="cell"></div>
-            <div id="y-zhi" class="cell"></div>
+            <div id="h-gan" class="cell"></div><div id="d-gan" class="cell master"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
+            <div id="h-zhi" class="cell"></div><div id="d-zhi" class="cell"></div><div id="m-zhi" class="cell"></div><div id="y-zhi" class="cell"></div>
         </div>
     </div>
 </div>
 
 <script>
-// 오행 데이터 맵핑
-const DATA = {
-    '甲': 'wood', '乙': 'wood', '寅': 'wood', '卯': 'wood',
-    '丙': 'fire', '丁': 'fire', '巳': 'fire', '午': 'fire',
-    '戊': 'earth', '己': 'earth', '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
-    '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal',
-    '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water'
+const COLOR_MAP = {
+    '甲':'wood','乙':'wood','寅':'wood','卯':'wood',
+    '丙':'fire','丁':'fire','巳':'fire','午':'fire',
+    '戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth',
+    '庚':'metal','辛':'metal','申':'metal','酉':'metal',
+    '壬':'water','癸':'water','亥':'water','子':'water'
 };
 
-function showBazi() {
-    const val = document.getElementById('birth-dt').value;
-    if (!val) return alert("날짜를 선택해주세요.");
+function calculateBazi() {
+    const dt = document.getElementById('birth-dt').value;
+    if(!dt) return;
 
-    // 1. Solar 객체 생성 (입력받은 시간 기준)
-    const solar = Solar.fromDate(new Date(val));
+    // 1. Solar -> Lunar 변환
+    const lunar = Solar.fromDate(new Date(dt)).getLunar();
     
-    // 2. EightChar(팔자) 객체 추출 (가장 에러 없는 방식)
-    const ba = solar.getLunar().getEightChar();
+    // 2. EightChar 객체 생성
+    const ba = lunar.getEightChar();
 
-    // 3. 각 기둥의 데이터를 화면에 매핑
-    const render = (id, han) => {
-        const el = document.getElementById(id);
-        el.innerText = han;
-        el.className = `cell ${DATA[han] || ''} ${id === 'd-gan' ? 'master' : ''}`;
+    // 3. 데이터 추출 (가장 안전한 메서드 조합)
+    // .getHourGan()이 안된다면 .getTimeGan()을 시도하거나, 아래와 같이 명시적으로 배열에서 가져올 수 있습니다.
+    const data = {
+        y: [ba.getYearGan(), ba.getYearZhi()],
+        m: [ba.getMonthGan(), ba.getMonthZhi()],
+        d: [ba.getDayGan(), ba.getDayZhi()],
+        h: [ba.getHourGan ? ba.getHourGan() : ba.getTimeGan(), ba.getHourZhi ? ba.getHourZhi() : ba.getTimeZhi()]
     };
 
-    // 천간 데이터 입력
-    render('y-gan', ba.getYearGan());
-    render('m-gan', ba.getMonthGan());
-    render('d-gan', ba.getDayGan());
-    render('h-gan', ba.getHourGan());
+    const update = (id, han) => {
+        const el = document.getElementById(id);
+        el.innerText = han;
+        el.className = `cell ${COLOR_MAP[han]} ${id === 'd-gan' ? 'master' : ''}`;
+    };
 
-    // 지지 데이터 입력
-    render('y-zhi', ba.getYearZhi());
-    render('m-zhi', ba.getMonthZhi());
-    render('d-zhi', ba.getDayZhi());
-    render('h-zhi', ba.getHourZhi());
+    update('y-gan', data.y[0]); update('y-zhi', data.y[1]);
+    update('m-gan', data.m[0]); update update('m-zhi', data.m[1]);
+    update('d-gan', data.d[0]); update('d-zhi', data.d[1]);
+    update('h-gan', data.h[0]); update('h-zhi', data.h[1]);
 
-    // 결과창 보여주기
     document.getElementById('result').style.display = 'block';
 }
 </script>
-
 </body>
 </html>
