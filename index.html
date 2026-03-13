@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Destiny Master</title>
+    <title>Bazi Mastery - Stable Version</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root {
@@ -13,80 +13,62 @@
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
         #container { max-width: 600px; width: 100%; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         h2 { text-align: center; color: #333; letter-spacing: -1px; }
-        
         .input-section { display: grid; gap: 15px; margin-bottom: 25px; }
         .input-group { display: flex; flex-direction: column; }
         label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; text-transform: uppercase; }
         input, select { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; }
         input:focus { border-color: #333; }
-        
         button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; }
         button:hover { background: #333; }
 
         #result { display: none; margin-top: 40px; border-top: 2px solid #f9f9f9; padding-top: 30px; }
         .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        
-        /* 사주 팔자 박스 스타일 */
         .pillar-label { font-size: 10px; font-weight: 800; color: #bbb; margin-bottom: 5px; }
         .cell { height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-size: 24px; font-weight: bold; position: relative; }
         .cell span { font-size: 10px; font-weight: normal; opacity: 0.9; margin-bottom: 2px; }
         .master { outline: 4px solid #000; outline-offset: -4px; }
-        
-        /* 십성 스타일 */
         .ten-star { font-size: 11px; font-weight: 700; color: #999; margin: 8px 0 15px; min-height: 14px; }
 
-        /* 오행 색상 */
-        .wood { background: var(--wood); }
-        .fire { background: var(--fire); }
-        .earth { background: var(--earth); color: #333 !important; }
-        .metal { background: var(--metal); }
-        .water { background: var(--water); }
+        .luck-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        .luck-list { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
+        .luck-card { min-width: 75px; background: #fafafa; padding: 10px 5px; border-radius: 15px; text-align: center; flex-shrink: 0; border: 1px solid #f0f0f0; }
+        .mini-cell { height: 35px; border-radius: 8px; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 4px; }
+
+        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
     </style>
 </head>
 <body>
 
 <div id="container">
     <h2>BAZI MASTER</h2>
-    
     <div class="input-section">
-        <div class="input-group">
-            <label>Birth Date & Time</label>
-            <input type="datetime-local" id="birth-dt">
-        </div>
-        <div class="input-group">
-            <label>Longitude (Seoul: 127.0 / NY: -74.0)</label>
-            <input type="number" id="longitude" value="127.0" step="0.1">
-        </div>
-        <div class="input-group">
-            <label>Gender (For Fortune Calculation)</label>
-            <select id="gender"><option value="1">Male</option><option value="0">Female</option></select>
-        </div>
+        <div class="input-group"><label>Birth Date & Time</label><input type="datetime-local" id="birth-dt"></div>
+        <div class="input-group"><label>Longitude</label><input type="number" id="longitude" value="127.0" step="0.1"></div>
+        <div class="input-group"><label>Gender</label><select id="gender"><option value="1">Male</option><option value="0">Female</option></select></div>
     </div>
-    
     <button onclick="calculateBazi()">ANALYZE DESTINY</button>
 
     <div id="result">
         <div class="bazi-grid">
             <div class="pillar-label">HOUR</div><div class="pillar-label">DAY</div><div class="pillar-label">MONTH</div><div class="pillar-label">YEAR</div>
-            
             <div id="h-gan" class="cell"></div><div id="d-gan" class="cell master"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
             <div id="h-gan-s" class="ten-star"></div><div class="ten-star" style="color:#000">SELF</div><div id="m-gan-s" class="ten-star"></div><div id="y-gan-s" class="ten-star"></div>
-            
             <div id="h-zhi" class="cell"></div><div id="d-zhi" class="cell"></div><div id="m-zhi" class="cell"></div><div id="y-zhi" class="cell"></div>
             <div id="h-zhi-s" class="ten-star"></div><div id="d-zhi-s" class="ten-star"></div><div id="m-zhi-s" class="ten-star"></div><div id="y-zhi-s" class="ten-star"></div>
+        </div>
+        <div class="luck-section">
+            <div id="luck-list" class="luck-list"></div>
         </div>
     </div>
 </div>
 
 <script>
-// 1. 데이터 매핑 테이블 (한자: [영어, 색상, 인덱스])
 const BAZI_DATA = {
     '甲':['Wood','wood',0],'乙':['Wood','wood',1],'丙':['Fire','fire',2],'丁':['Fire','fire',3],'戊':['Earth','earth',4],'己':['Earth','earth',5],'庚':['Metal','metal',6],'辛':['Metal','metal',7],'壬':['Water','water',8],'癸':['Water','water',9],
     '寅':['Tiger','wood',0],'卯':['Rabbit','wood',1],'巳':['Snake','fire',2],'午':['Horse','fire',3],'辰':['Dragon','earth',4],'戌':['Dog','earth',4],'丑':['Ox','earth',5],'未':['Goat','earth',5],'申':['Monkey','metal',6],'酉':['Rooster','metal',7],'亥':['Pig','water',8],'子':['Rat','water',9]
 };
 const STAR_NAMES = ['Friend','Robber','Eating','Hurt','Wealth','D-Wealth','7-Kills','Officer','Owl','Resource'];
 
-// 2. 십성 계산 함수 (일간 기준)
 function getStar(me, target) {
     if(!BAZI_DATA[me] || !BAZI_DATA[target]) return "";
     let diff = BAZI_DATA[target][2] - BAZI_DATA[me][2];
@@ -95,47 +77,58 @@ function getStar(me, target) {
 }
 
 function calculateBazi() {
-    const dtVal = document.getElementById('birth-dt').value;
-    if(!dtVal) return alert("Please select your birth date.");
-    const lon = parseFloat(document.getElementById('longitude').value);
+    try {
+        const dtVal = document.getElementById('birth-dt').value;
+        if(!dtVal) return alert("Select date.");
+        const lon = parseFloat(document.getElementById('longitude').value);
+        const gender = parseInt(document.getElementById('gender').value);
 
-    // 3. 진태양시 보정 (표준시 135도 기준)
-    const correctedTime = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
-    
-    // 4. 기초 한자 데이터 추출
-    const solar = Solar.fromDate(correctedTime);
-    const lunar = solar.getLunar();
-    
-    const bazi = {
-        y: [lunar.getYearGan(), lunar.getYearZhi()],
-        m: [lunar.getMonthGan(), lunar.getMonthZhi()],
-        d: [lunar.getDayGan(), lunar.getDayZhi()],
-        h: [lunar.getTimeGan(), lunar.getTimeZhi()]
-    };
+        // 1. 시간 보정 및 객체 생성
+        const correctedTime = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
+        const solar = Solar.fromDate(correctedTime);
+        const lunar = solar.getLunar();
+        const ba = lunar.getEightChar(); // 이 객체를 사용하는 것이 가장 정확합니다.
 
-    const me = bazi.d[0]; // 일간 (나)
+        const me = ba.getDayGan();
 
-    // 5. 화면 렌더링 함수
-    const updateCell = (id, han, isMe = false) => {
-        const info = BAZI_DATA[han];
-        const el = document.getElementById(id);
-        el.className = `cell ${info[1]} ${isMe ? 'master' : ''}`;
-        el.innerHTML = `<span>${info[0]}</span>${han}`;
+        // 2. 화면 렌더링
+        const updateCell = (id, han, isMe = false) => {
+            const info = BAZI_DATA[han];
+            const el = document.getElementById(id);
+            el.className = `cell ${info[1]} ${isMe ? 'master' : ''}`;
+            el.innerHTML = `<span>${info[0]}</span>${han}`;
+            const starEl = document.getElementById(id + '-s');
+            if(starEl) starEl.innerText = isMe ? "SELF" : getStar(me, han);
+        };
+
+        updateCell('y-gan', ba.getYearGan()); updateCell('y-zhi', ba.getYearZhi());
+        updateCell('m-gan', ba.getMonthGan()); updateCell('m-zhi', ba.getMonthZhi());
+        updateCell('d-gan', ba.getDayGan(), true); updateCell('d-zhi', ba.getDayZhi());
+        updateCell('h-gan', ba.getHourGan()); updateCell('h-zhi', ba.getHourZhi());
+
+        // 3. 대운 계산 로직 (에러 방지를 위해 분리)
+        const luckList = document.getElementById('luck-list');
+        luckList.innerHTML = '';
+        const fortune = ba.getFortune();
+        const daYun = fortune.getDaYun(gender);
         
-        const starId = id + '-s';
-        const starEl = document.getElementById(starId);
-        if(starEl) starEl.innerText = isMe ? "SELF" : getStar(me, han);
-    };
+        for (let i = 1; i < daYun.length; i++) {
+            const dy = daYun[i];
+            const dg = dy.getGan(); const dz = dy.getZhi();
+            const card = document.createElement('div');
+            card.className = 'luck-card';
+            card.innerHTML = `<div style="font-size:11px; font-weight:bold; margin-bottom:5px;">${dy.getStartAge()}</div>
+                              <div class="mini-cell ${BAZI_DATA[dg][1]}">${dg}</div>
+                              <div class="mini-cell ${BAZI_DATA[dz][1]}">${dz}</div>`;
+            luckList.appendChild(card);
+        }
 
-    // 년, 월, 일, 시 기둥 채우기
-    updateCell('y-gan', bazi.y[0]); updateCell('y-zhi', bazi.y[1]);
-    updateCell('m-gan', bazi.m[0]); updateCell('m-zhi', bazi.m[1]);
-    updateCell('d-gan', bazi.d[0], true); updateCell('d-zhi', bazi.d[1]);
-    updateCell('h-gan', bazi.h[0]); updateCell('h-zhi', bazi.h[1]);
-
-    document.getElementById('result').style.display = 'block';
+        document.getElementById('result').style.display = 'block';
+    } catch (e) {
+        console.error(e);
+        alert("데이터 처리 중 오류가 발생했습니다. 생년월일을 다시 확인해주세요.");
+    }
 }
 </script>
-
 </body>
 </html>
