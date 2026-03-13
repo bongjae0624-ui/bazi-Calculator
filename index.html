@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master - Fixed</title>
+    <title>Bazi Test - Original Logic</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root {
             --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
             --metal: #7f8c8d; --water: #2c3e50; --bg: #f4f7f6;
         }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #status { font-size: 12px; margin-bottom: 10px; color: #666; }
         #container { max-width: 500px; width: 100%; background: #fff; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .input-group { margin-bottom: 20px; display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; }
         input { padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
         button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
         
         #result { display: none; margin-top: 30px; }
         .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .label { font-size: 11px; color: #bbb; font-weight: bold; margin-bottom: 5px; }
+        .pillar-label { font-size: 11px; font-weight: 800; color: #bbb; margin-bottom: 5px; }
         .cell { height: 85px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: bold; }
         .master { outline: 4px solid #000; outline-offset: -4px; }
 
@@ -27,15 +29,18 @@
 </head>
 <body>
 
+<div id="status">검사 중...</div>
+
 <div id="container">
     <div class="input-group">
+        <label>BIRTH DATE & TIME</label>
         <input type="datetime-local" id="birth-dt">
     </div>
-    <button onclick="calculateBazi()">명식 확인하기</button>
+    <button onclick="calculateBazi()">ANALYZE</button>
 
     <div id="result">
         <div class="bazi-grid">
-            <div class="label">HOUR</div><div class="label">DAY</div><div class="label">MONTH</div><div class="label">YEAR</div>
+            <div class="pillar-label">HOUR</div><div class="pillar-label">DAY</div><div class="pillar-label">MONTH</div><div class="pillar-label">YEAR</div>
             
             <div id="h-gan" class="cell"></div><div id="d-gan" class="cell master"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
             <div id="h-zhi" class="cell"></div><div id="d-zhi" class="cell"></div><div id="m-zhi" class="cell"></div><div id="y-zhi" class="cell"></div>
@@ -44,7 +49,19 @@
 </div>
 
 <script>
-const COLOR_MAP = {
+// 1. 라이브러리 로드 체크
+window.onload = function() {
+    const statusEl = document.getElementById('status');
+    if (typeof Solar !== 'undefined') {
+        statusEl.innerText = "✅ 라이브러리 로드 완료 (Solar Object Found)";
+        statusEl.style.color = "green";
+    } else {
+        statusEl.innerText = "❌ 라이브러리 로드 실패 (Solar Not Found)";
+        statusEl.style.color = "red";
+    }
+};
+
+const BAZI_COLORS = {
     '甲':'wood','乙':'wood','寅':'wood','卯':'wood',
     '丙':'fire','丁':'fire','巳':'fire','午':'fire',
     '戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth',
@@ -53,43 +70,48 @@ const COLOR_MAP = {
 };
 
 function calculateBazi() {
-    try {
-        const dtVal = document.getElementById('birth-dt').value;
-        if(!dtVal) return alert("날짜를 선택해주세요.");
+    const dtVal = document.getElementById('birth-dt').value;
+    if(!dtVal) return alert("날짜를 선택하세요.");
 
-        // 1. 객체 생성
+    try {
+        // 2. 데이터 추출 (가장 보편적인 .getYear/Month/Day/Hour 사용)
         const solar = Solar.fromDate(new Date(dtVal));
         const lunar = solar.getLunar();
         const ba = lunar.getEightChar();
 
-        // 2. 데이터 추출 (가장 에러 없는 방식: 기둥 문자열에서 직접 쪼개기)
-        const yP = ba.getYear();  // 예: "甲子"
-        const mP = ba.getMonth(); // 예: "丙寅"
-        const dP = ba.getDay();   // 예: "戊辰"
-        const hP = ba.getHour();  // 예: "庚午"
+        // 8자 가져오기 (문자열 쪼개기 방식 - 에러 방지)
+        const yP = ba.getYear(); 
+        const mP = ba.getMonth(); 
+        const dP = ba.getDay(); 
+        const hP = ba.getHour(); 
 
-        const data = {
-            gan: [hP[0], dP[0], mP[0], yP[0]], // 시, 일, 월, 년 순서
-            zhi: [hP[1], dP[1], mP[1], yP[1]]
-        };
+        const mapping = [
+            { id: 'y', val: yP },
+            { id: 'm', val: mP },
+            { id: 'd', val: dP },
+            { id: 'h', val: hP }
+        ];
 
-        const update = (id, han, isMaster = false) => {
-            const el = document.getElementById(id);
-            el.innerText = han;
-            el.className = `cell ${COLOR_MAP[han]} ${isMaster ? 'master' : ''}`;
-        };
-
-        // 3. 화면 업데이트
-        const ids = ['h', 'd', 'm', 'y'];
-        ids.forEach((p, i) => {
-            update(`${p}-gan`, data.gan[i], p === 'd');
-            update(`${p}-zhi`, data.zhi[i]);
+        mapping.forEach(item => {
+            const gan = item.val[0];
+            const zhi = item.val[1];
+            
+            const ganEl = document.getElementById(`${item.id}-gan`);
+            const zhiEl = document.getElementById(`${item.id}-zhi`);
+            
+            ganEl.innerText = gan;
+            ganEl.className = `cell ${BAZI_COLORS[gan]} ${item.id === 'd' ? 'master' : ''}`;
+            
+            zhiEl.innerText = zhi;
+            zhiEl.className = `cell ${BAZI_COLORS[zhi]}`;
         });
 
         document.getElementById('result').style.display = 'block';
+        console.log("분석 완료:", yP, mP, dP, hP);
+
     } catch (e) {
-        console.error(e);
-        alert("계산 중 에러가 발생했습니다. 콘솔을 확인하세요.");
+        console.error("에러 발생:", e);
+        alert("계산 중 에러가 발생했습니다: " + e.message);
     }
 }
 </script>
