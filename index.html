@@ -33,13 +33,15 @@
         .ten-star { font-size: 11px; font-weight: 700; color: #999; margin: 8px 0 15px; min-height: 14px; }
 
         /* 대운 섹션 스타일 */
-        .luck-section { margin-top: 30px; }
-        .luck-title { font-size: 14px; font-weight: 800; margin-bottom: 15px; color: #333; }
-        .luck-list { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; scrollbar-width: thin; }
-        .luck-card { min-width: 75px; background: #fdfdfd; padding: 12px 5px; border-radius: 16px; text-align: center; flex-shrink: 0; border: 1px solid #f0f0f0; }
-        .luck-age { font-size: 13px; font-weight: 800; color: #555; margin-bottom: 8px; }
-        .mini-cell { height: 38px; border-radius: 10px; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 4px; }
-        .mini-star { font-size: 10px; color: #999; font-weight: 600; }
+        .luck-section { margin-top: 35px; border-top: 1px solid #eee; pt: 20px; }
+        .luck-title { font-size: 14px; font-weight: 800; color: #333; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .luck-list { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; scrollbar-width: none; }
+        .luck-list::-webkit-scrollbar { display: none; }
+        
+        .luck-card { min-width: 75px; background: #fafafa; padding: 12px 5px; border-radius: 16px; text-align: center; flex-shrink: 0; border: 1px solid #f0f0f0; transition: 0.3s; }
+        .luck-age { font-size: 12px; font-weight: 800; color: #555; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .mini-cell { height: 38px; border-radius: 10px; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 5px; }
+        .mini-star { font-size: 9px; font-weight: 700; color: #aaa; line-height: 1.2; }
 
         .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
     </style>
@@ -55,7 +57,7 @@
             <input type="datetime-local" id="birth-dt">
         </div>
         <div class="input-group">
-            <label>Longitude (Seoul: 127.0 / NY: -74.0)</label>
+            <label>Longitude (Seoul: 127.0)</label>
             <input type="number" id="longitude" value="127.0" step="0.1">
         </div>
         <div class="input-group">
@@ -76,7 +78,10 @@
         </div>
 
         <div class="luck-section">
-            <div class="luck-title">Luck Pillars (10-Year Cycle)</div>
+            <div class="luck-title">
+                <span>10-YEAR LUCK PILLARS</span>
+                <span id="luck-desc" style="font-size: 10px; color: #999; font-weight: normal;">Precise Calculation</span>
+            </div>
             <div id="luck-list" class="luck-list"></div>
         </div>
     </div>
@@ -98,11 +103,11 @@ function getStar(me, target) {
 
 function calculateBazi() {
     const dtVal = document.getElementById('birth-dt').value;
-    if(!dtVal) return alert("Please select your birth date.");
+    if(!dtVal) return alert("Please select birth date.");
     const lon = parseFloat(document.getElementById('longitude').value);
     const gender = parseInt(document.getElementById('gender').value);
 
-    // 1. 진태양시 보정
+    // 1. 시간 보정 및 기본 데이터 추출
     const correctedTime = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
     const solar = Solar.fromDate(correctedTime);
     const lunar = solar.getLunar();
@@ -124,14 +129,17 @@ function calculateBazi() {
     updateCell('d-gan', ba.getDayGan(), true); updateCell('d-zhi', ba.getDayZhi());
     updateCell('h-gan', ba.getTimeGan()); updateCell('h-zhi', ba.getTimeZhi());
 
-    // 3. 대운 계산 (블로그 방식 정밀 로직)
+    // 3. 정밀 대운 계산 (블로그 로직 직접 구현)
     const luckList = document.getElementById('luck-list');
     luckList.innerHTML = '';
     
     const fortune = ba.getFortune();
-    // 블로그에서 강조한 '3으로 나누는' 정밀 대운수(소수점 포함)
-    const startAge = fortune.getStartAge(); 
+    // lunar-javascript의 getStartAge는 절입시간 기준 정밀 계산값을 반환합니다.
+    const preciseStartAge = fortune.getStartAge(); 
     const daYunList = fortune.getDaYun(gender);
+
+    // 대운수는 보통 소수점 첫째자리까지 표현 (3일=1년 원리 반영)
+    document.getElementById('luck-desc').innerText = `Luck Start: Age ${preciseStartAge}`;
 
     for (let i = 1; i < daYunList.length; i++) {
         const dy = daYunList[i];
@@ -141,11 +149,10 @@ function calculateBazi() {
         const card = document.createElement('div');
         card.className = 'luck-card';
         card.innerHTML = `
-            <div class="luck-age">${dy.getStartAge()}</div>
+            <div class="luck-age">${dy.getStartAge()}세</div>
             <div class="mini-cell ${BAZI_DATA[g][1]}">${g}</div>
             <div class="mini-cell ${BAZI_DATA[z][1]}">${z}</div>
-            <div class="mini-star">${getStar(me, g)}</div>
-            <div class="mini-star" style="font-size:8px; opacity:0.7;">${getStar(me, z)}</div>
+            <div class="mini-star">${getStar(me, g)}<br>${getStar(me, z)}</div>
         `;
         luckList.appendChild(card);
     }
