@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master Global - Location Correction</title>
+    <title>Bazi Master Pro - Advanced Edition</title>
     <style>
         :root {
             --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
@@ -12,22 +12,23 @@
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
         .card { max-width: 550px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box; }
         
-        .input-box { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
-        .location-search { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid #eee; }
-        #addr-input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; }
-        .search-btn { background: #444 !important; width: 80px !important; margin: 0 !important; padding: 10px !important; }
+        /* 입력 섹션 스타일 */
+        .input-box { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+        .option-group { display: flex; flex-wrap: wrap; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #eee; }
+        .option-item { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold; color: #555; }
         
-        select, input { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 15px; outline: none; }
-        input[type="datetime-local"] { flex: 1; }
-        button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        select, input[type="text"], input[type="datetime-local"] { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 15px; outline: none; }
+        button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #333; }
 
-        /* 사주 팔자 */
+        /* 사주 명식 */
         .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 30px; }
-        .cell { height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 800; }
+        .cell { height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 800; transition: 0.3s; }
+        .unknown { background: #ddd !important; color: #aaa !important; font-size: 18px !important; }
         .master { border: 4px solid #000; box-sizing: border-box; }
 
-        /* 섹션/대운/세운 */
-        .section-title { font-size: 15px; font-weight: bold; margin: 20px 0 10px; border-left: 4px solid #000; padding-left: 10px; }
+        /* 대운/세운/월운 스타일 동일하게 유지 */
+        .section-title { font-size: 14px; font-weight: bold; margin: 20px 0 10px; border-left: 4px solid #000; padding-left: 10px; }
         .luck-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
         .luck-item { min-width: 70px; text-align: center; background: #fafafa; padding: 10px; border-radius: 15px; border: 1px solid #eee; flex-shrink: 0; cursor: pointer; }
         .sub-section { margin-top: 15px; padding: 15px; border-radius: 15px; display: none; }
@@ -41,71 +42,63 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center;">BAZI MASTER GLOBAL</h2>
+    <h2 style="text-align:center;">BAZI MASTER PRO</h2>
     
     <div class="input-box">
-        <div class="location-search">
-            <div style="font-size: 13px; font-weight: bold; color: #555;">📍 위치 기반 경도 시정 (Location Search)</div>
-            <div style="display: flex; gap: 5px;">
-                <input type="text" id="addr-input" placeholder="도시명 입력 (e.g. Los Angeles)">
-                <button class="search-btn" onclick="searchLocation()">검색</button>
-            </div>
-            <div id="geo-info" style="font-size: 12px; color: #888;">경도: 미설정 (표준시 기준)</div>
+        <div style="display: flex; gap: 5px;">
+            <input type="text" id="addr-input" placeholder="City (e.g. New York)" style="flex:1;">
+            <button onclick="searchLocation()" style="width:70px; margin:0; padding:10px;">검색</button>
+        </div>
+        <div id="geo-info" style="font-size:11px; color:#888; margin-top:-10px;">경도: 미설정 (표준시 기준)</div>
+
+        <div style="display: flex; gap: 10px;">
+            <input type="datetime-local" id="birth-dt" style="flex:2;">
+            <select id="gender" style="flex:1;"><option value="M">남성</option><option value="F">여성</option></select>
         </div>
 
-        <select id="gender"><option value="M">남성</option><option value="F">여성</option></select>
-        <input type="datetime-local" id="birth-dt">
-        <button onclick="analyze()">정밀 분석 실행 (Analyze)</button>
+        <div class="option-group">
+            <label class="option-item"><input type="checkbox" id="no-time"> 생시 모름</label>
+            <label class="option-item">
+                자시 기준: 
+                <select id="jasi-type" style="padding: 2px 5px; font-size: 11px; border-radius: 5px;">
+                    <option value="Y">야자시 적용 (23시 이후 다음날)</option>
+                    <option value="N">전통 자시 (날짜 변경 안 함)</option>
+                </select>
+            </label>
+        </div>
+
+        <button onclick="analyze()">정밀 분석 및 대운 산출</button>
     </div>
 
     <div id="result" style="display:none;">
-        <div class="section-title">사주 명식 (True Solar Time Applied)</div>
+        <div class="section-title">사주 명식 (Bazi Chart)</div>
         <div class="bazi-grid">
             <div class="column"><div id="h-gan" class="cell"></div><div id="h-zhi" class="cell" style="margin-top:5px;"></div></div>
             <div class="column"><div id="d-gan" class="cell master"></div><div id="d-zhi" class="cell" style="margin-top:5px;"></div></div>
             <div class="column"><div id="m-gan" class="cell"></div><div id="m-zhi" class="cell" style="margin-top:5px;"></div></div>
             <div class="column"><div id="y-gan" class="cell"></div><div id="y-zhi" class="cell" style="margin-top:5px;"></div></div>
         </div>
-
-        <div class="section-title" id="luck-title">대운</div>
+        <div class="section-title" id="luck-title">대운 흐름</div>
         <div id="luck-list" class="luck-container"></div>
-
-        <div id="seun-area" class="sub-section" style="background: #edf2ff;">
-            <div class="section-title" id="seun-title" style="margin:0 0 10px 0;">세운</div>
-            <div id="seun-list" class="grid-layout"></div>
-        </div>
-
-        <div id="wolun-area" class="sub-section" style="background: #f1f3f5;">
-            <div class="section-title" id="wolun-title" style="margin:0 0 10px 0;">월운</div>
-            <div id="wolun-list" class="grid-layout" style="grid-template-columns: repeat(4, 1fr);"></div>
-        </div>
+        <div id="seun-area" class="sub-section" style="background: #edf2ff;"><div class="section-title" id="seun-title" style="margin:0 0 10px 0;">세운</div><div id="seun-list" class="grid-layout"></div></div>
+        <div id="wolun-area" class="sub-section" style="background: #f1f3f5;"><div class="section-title" id="wolun-title" style="margin:0 0 10px 0;">월운</div><div id="wolun-list" class="grid-layout" style="grid-template-columns: repeat(4, 1fr);"></div></div>
     </div>
 </div>
 
 <script>
-let baziData = null;
-let monthlyData = null;
-let userLon = null; // 검색된 경도
-
-const GANS = "甲乙丙丁戊己庚辛壬癸";
-const ZHIS = "子丑寅卯辰巳午未申酉戌亥";
+let baziData = null, monthlyData = null, userLon = null;
+const GANS = "甲乙丙丁戊己庚辛壬癸", ZHIS = "子丑寅卯辰巳午未申酉戌亥";
 const COLORS = {'甲':'wood','乙':'wood','寅':'wood','卯':'wood','丙':'fire','丁':'fire','巳':'fire','午':'fire','戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth','庚':'metal','辛':'metal','申':'metal','酉':'metal','壬':'water','癸':'water','亥':'water','子':'water'};
 
 async function init() {
     const BASE = 'https://raw.githubusercontent.com/사용자이름/저장소/main/';
     try {
-        const [r1, r2] = await Promise.all([
-            fetch(BASE + 'bazi_data_with_terms.json'),
-            fetch(BASE + 'monthly_data.json')
-        ]);
-        baziData = await r1.json();
-        monthlyData = await r2.json();
-        console.log("✅ Data Loaded");
-    } catch(e) { console.error("Load Error"); }
+        const [r1, r2] = await Promise.all([fetch(BASE+'bazi_data_with_terms.json'), fetch(BASE+'monthly_data.json')]);
+        baziData = await r1.json(); monthlyData = await r2.json();
+    } catch(e) {}
 }
 init();
 
-// 위치 검색 (OpenStreetMap Nominatim)
 async function searchLocation() {
     const q = document.getElementById('addr-input').value;
     if(!q) return;
@@ -114,100 +107,102 @@ async function searchLocation() {
         const data = await res.json();
         if(data.length > 0) {
             userLon = parseFloat(data[0].lon);
-            document.getElementById('geo-info').innerText = `📍 설정된 경도: ${userLon.toFixed(2)}° (${data[0].display_name.split(',')[0]})`;
-            alert("위치가 설정되었습니다.");
+            document.getElementById('geo-info').innerText = `📍 설정 경도: ${userLon.toFixed(2)}° (${data[0].display_name.split(',')[0]})`;
         }
-    } catch(e) { alert("위치 검색 오류"); }
-}
-
-function getHourPillar(dayGan, hour) {
-    let zIdx = Math.floor((hour + 1) / 2) % 12;
-    const startMap = { '甲': 0, '己': 0, '乙': 2, '庚': 2, '丙': 4, '辛': 4, '丁': 6, '壬': 6, '戊': 8, '癸': 8 };
-    return GANS[(startMap[dayGan] + zIdx) % 10] + ZHIS[zIdx];
+    } catch(e) {}
 }
 
 function analyze() {
-    if (!baziData || !monthlyData) return alert("데이터 로딩 중...");
+    if (!baziData) return alert("데이터 로딩 중...");
     const dtVal = document.getElementById('birth-dt').value;
     if(!dtVal) return alert("날짜를 입력하세요.");
+    const isNoTime = document.getElementById('no-time').checked;
+    const jasiType = document.getElementById('jasi-type').value;
 
     let targetDt = new Date(dtVal);
     
-    // [경도 시정] 진태양시 계산
+    // 1. 경도 시정
     if(userLon !== null) {
-        const offset = targetDt.getTimezoneOffset(); // 분 단위 (KST -540)
-        const stdLon = (offset * -1) / 4; // 표준시 기준경도 (KST 135)
-        const corrMin = (userLon - stdLon) * 4; // 경도 차이 1도당 4분
-        targetDt = new Date(targetDt.getTime() + (corrMin * 60000));
+        const stdLon = (targetDt.getTimezoneOffset() * -1) / 4;
+        targetDt = new Date(targetDt.getTime() + (userLon - stdLon) * 4 * 60000);
     }
 
-    const y = targetDt.getFullYear(), m = targetDt.getMonth()+1, d = targetDt.getDate(), h = targetDt.getHours();
+    // 2. 야자시 처리 (23:00~00:00 사이이며 야자시 옵션이 켜져 있을 때 날짜를 다음날로 계산)
+    let baziY = targetDt.getFullYear(), baziM = targetDt.getMonth()+1, baziD = targetDt.getDate();
+    if (!isNoTime && jasiType === 'Y' && targetDt.getHours() >= 23) {
+        const nextDay = new Date(targetDt.getTime() + 24*60*60*1000);
+        baziY = nextDay.getFullYear(); baziM = nextDay.getMonth()+1; baziD = nextDay.getDate();
+    }
 
     try {
-        const raw = baziData[y][m][d].split('|');
+        const raw = baziData[baziY][baziM][baziD].split('|');
         const yP = raw[0], mP = raw[1], dP = raw[2], prevT = raw[4], nextT = raw[6];
-        const hP = getHourPillar(dP[0], h);
+        
+        // 3. 시주 계산 (생시 모름일 경우 제외)
+        let hP = isNoTime ? "??" : getHourPillar(dP[0], targetDt.getHours());
 
         const up = (id, p, mstr=false) => {
-            document.getElementById(`${id}-gan`).innerText = p[0];
-            document.getElementById(`${id}-gan`).className = `cell ${COLORS[p[0]]} ${mstr?'master':''}`;
-            document.getElementById(`${id}-zhi`).innerText = p[1];
-            document.getElementById(`${id}-zhi`).className = `cell ${COLORS[p[1]]}`;
+            const gEl = document.getElementById(`${id}-gan`), zEl = document.getElementById(`${id}-zhi`);
+            if(p === "??") {
+                gEl.innerText = "時"; gEl.className = "cell unknown";
+                zEl.innerText = "未知"; zEl.className = "cell unknown";
+            } else {
+                gEl.innerText = p[0]; gEl.className = `cell ${COLORS[p[0]]} ${mstr?'master':''}`;
+                zEl.innerText = p[1]; zEl.className = `cell ${COLORS[p[1]]}`;
+            }
         };
         up('y', yP); up('m', mP); up('d', dP, true); up('h', hP);
 
-        // 대운수 계산 (3분법)
+        // 4. 대운수 계산 (생시 모름이면 정오 12시 기준으로 가계산)
+        const calcDt = isNoTime ? new Date(targetDt.getFullYear(), targetDt.getMonth(), targetDt.getDate(), 12) : targetDt;
         const isYang = "甲丙戊庚壬".includes(yP[0]);
         const isFwd = (document.getElementById('gender').value === 'M' && isYang) || (document.getElementById('gender').value === 'F' && !isYang);
         const termDt = isFwd ? new Date(nextT.replace(/-/g, "/")) : new Date(prevT.replace(/-/g, "/"));
-        let lNum = Math.round(Math.abs(termDt - targetDt) / (1000*60*60*24*3));
+        let lNum = Math.round(Math.abs(termDt - calcDt) / (1000*60*60*24*3));
         lNum = Math.max(1, Math.min(10, lNum));
 
-        document.getElementById('luck-title').innerText = `대운 흐름 (${lNum}대운)`;
-        const list = document.getElementById('luck-list');
-        list.innerHTML = '';
-        let cG = GANS.indexOf(mP[0]), cZ = ZHIS.indexOf(mP[1]);
-
-        for (let i = 0; i < 10; i++) {
-            if (isFwd) { cG=(cG+1)%10; cZ=(cZ+1)%12; }
-            else { cG=(cG+9)%10; cZ=(cZ+11)%12; }
-            const g = GANS[cG], z = ZHIS[cZ];
-            list.innerHTML += `
-                <div class="luck-item" onclick="showSeun(${y + lNum + (i*10)}, this)">
-                    <div style="font-size:12px; font-weight:bold;">${lNum+(i*10)}세</div>
-                    <div style="font-size:18px; font-weight:900; color:${getCol(g)}">${g}<br>${z}</div>
-                </div>`;
-        }
+        renderLuck(baziY, lNum, isFwd, mP);
         document.getElementById('result').style.display = 'block';
     } catch(e) { alert("분석 실패"); }
 }
 
+function getHourPillar(dayGan, hr) {
+    let zIdx = Math.floor((hr + 1) / 2) % 12;
+    const startMap = { '甲': 0, '己': 0, '乙': 2, '庚': 2, '丙': 4, '辛': 4, '丁': 6, '壬': 6, '戊': 8, '癸': 8 };
+    return GANS[(startMap[dayGan] + zIdx) % 10] + ZHIS[zIdx];
+}
+
+function renderLuck(y, lNum, isFwd, mP) {
+    const list = document.getElementById('luck-list'); list.innerHTML = '';
+    let cG = GANS.indexOf(mP[0]), cZ = ZHIS.indexOf(mP[1]);
+    for (let i = 0; i < 10; i++) {
+        if (isFwd) { cG=(cG+1)%10; cZ=(cZ+1)%12; } else { cG=(cG+9)%10; cZ=(cZ+11)%12; }
+        const g = GANS[cG], z = ZHIS[cZ];
+        list.innerHTML += `<div class="luck-item" onclick="showSeun(${y + lNum + (i*10)}, this)">
+            <div style="font-size:12px; font-weight:bold;">${lNum+(i*10)}세</div>
+            <div style="font-size:18px; font-weight:900; color:${getCol(g)}">${g}<br>${z}</div></div>`;
+    }
+}
+
+// showSeun, showWolun, getCol 함수는 이전 버전과 동일하게 유지
 function showSeun(sy, obj) {
     document.querySelectorAll('.luck-item').forEach(e => e.classList.remove('active-item'));
     obj.classList.add('active-item');
     document.getElementById('seun-area').style.display = 'block';
     document.getElementById('wolun-area').style.display = 'none';
-    const l = document.getElementById('seun-list');
-    l.innerHTML = '';
+    const l = document.getElementById('seun-list'); l.innerHTML = '';
     for(let i=0; i<10; i++) {
-        const yr = sy + i;
-        const off = (yr - 1900 + 36) % 60;
-        const g = GANS[off%10], z = ZHIS[off%12];
-        l.innerHTML += `<div class="mini-item" onclick="showWolun(${yr}, this)">${yr}<br>${g}${z}</div>`;
+        const yr = sy + i; const off = (yr - 1900 + 36) % 60;
+        l.innerHTML += `<div class="mini-item" onclick="showWolun(${yr}, this)">${yr}<br>${GANS[off%10]}${ZHIS[off%12]}</div>`;
     }
 }
-
 function showWolun(yr, obj) {
     document.querySelectorAll('.mini-item').forEach(e => e.classList.remove('active-item'));
     obj.classList.add('active-item');
     document.getElementById('wolun-area').style.display = 'block';
-    const l = document.getElementById('wolun-list');
-    l.innerHTML = '';
-    for(let m=1; m<=12; m++) {
-        l.innerHTML += `<div class="mini-item"><b>${m}월</b><br>${monthlyData[yr][m]}</div>`;
-    }
+    const l = document.getElementById('wolun-list'); l.innerHTML = '';
+    for(let m=1; m<=12; m++) l.innerHTML += `<div class="mini-item"><b>${m}월</b><br>${monthlyData[yr][m]}</div>`;
 }
-
 function getCol(c) {
     const t = COLORS[c];
     return t==='wood'?'#27ae60':t==='fire'?'#e74c3c':t==='earth'?'#f1c40f':t==='metal'?'#7f8c8d':'#2c3e50';
