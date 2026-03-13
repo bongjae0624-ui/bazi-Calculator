@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Mastery - Stable Version</title>
+    <title>Bazi Master - Bug Fixed</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root {
@@ -14,24 +14,19 @@
         #container { max-width: 600px; width: 100%; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         h2 { text-align: center; color: #333; letter-spacing: -1px; }
         .input-section { display: grid; gap: 15px; margin-bottom: 25px; }
-        .input-group { display: flex; flex-direction: column; }
         label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; text-transform: uppercase; }
-        input, select { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; }
-        input:focus { border-color: #333; }
-        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #333; }
-
-        #result { display: none; margin-top: 40px; border-top: 2px solid #f9f9f9; padding-top: 30px; }
+        input, select { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: 800; font-size: 16px; cursor: pointer; }
+        
+        #result { display: none; margin-top: 40px; }
         .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .pillar-label { font-size: 10px; font-weight: 800; color: #bbb; margin-bottom: 5px; }
-        .cell { height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-size: 24px; font-weight: bold; position: relative; }
-        .cell span { font-size: 10px; font-weight: normal; opacity: 0.9; margin-bottom: 2px; }
-        .master { outline: 4px solid #000; outline-offset: -4px; }
+        .cell { height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-size: 24px; font-weight: bold; }
+        .cell span { font-size: 10px; font-weight: normal; margin-bottom: 2px; }
         .ten-star { font-size: 11px; font-weight: 700; color: #999; margin: 8px 0 15px; min-height: 14px; }
 
         .luck-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        .luck-list { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
-        .luck-card { min-width: 75px; background: #fafafa; padding: 10px 5px; border-radius: 15px; text-align: center; flex-shrink: 0; border: 1px solid #f0f0f0; }
+        .luck-list { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 15px; }
+        .luck-card { min-width: 70px; background: #fafafa; padding: 10px; border-radius: 15px; text-align: center; border: 1px solid #eee; flex-shrink: 0; }
         .mini-cell { height: 35px; border-radius: 8px; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 4px; }
 
         .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
@@ -42,20 +37,16 @@
 <div id="container">
     <h2>BAZI MASTER</h2>
     <div class="input-section">
-        <div class="input-group"><label>Birth Date & Time</label><input type="datetime-local" id="birth-dt"></div>
-        <div class="input-group"><label>Longitude</label><input type="number" id="longitude" value="127.0" step="0.1"></div>
-        <div class="input-group"><label>Gender</label><select id="gender"><option value="1">Male</option><option value="0">Female</option></select></div>
+        <label>Birth Date</label>
+        <input type="datetime-local" id="birth-dt">
+        <label>Gender</label>
+        <select id="gender"><option value="1">Male</option><option value="0">Female</option></select>
     </div>
-    <button onclick="calculateBazi()">ANALYZE DESTINY</button>
+    <button onclick="calculateBazi()">ANALYZE</button>
 
     <div id="result">
-        <div class="bazi-grid">
-            <div class="pillar-label">HOUR</div><div class="pillar-label">DAY</div><div class="pillar-label">MONTH</div><div class="pillar-label">YEAR</div>
-            <div id="h-gan" class="cell"></div><div id="d-gan" class="cell master"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
-            <div id="h-gan-s" class="ten-star"></div><div class="ten-star" style="color:#000">SELF</div><div id="m-gan-s" class="ten-star"></div><div id="y-gan-s" class="ten-star"></div>
-            <div id="h-zhi" class="cell"></div><div id="d-zhi" class="cell"></div><div id="m-zhi" class="cell"></div><div id="y-zhi" class="cell"></div>
-            <div id="h-zhi-s" class="ten-star"></div><div id="d-zhi-s" class="ten-star"></div><div id="m-zhi-s" class="ten-star"></div><div id="y-zhi-s" class="ten-star"></div>
-        </div>
+        <div class="bazi-grid" id="grid-container">
+            </div>
         <div class="luck-section">
             <div id="luck-list" class="luck-list"></div>
         </div>
@@ -77,57 +68,68 @@ function getStar(me, target) {
 }
 
 function calculateBazi() {
-    try {
-        const dtVal = document.getElementById('birth-dt').value;
-        if(!dtVal) return alert("Select date.");
-        const lon = parseFloat(document.getElementById('longitude').value);
-        const gender = parseInt(document.getElementById('gender').value);
+    const dtVal = document.getElementById('birth-dt').value;
+    if(!dtVal) return;
+    const gender = parseInt(document.getElementById('gender').value);
 
-        // 1. 시간 보정 및 객체 생성
-        const correctedTime = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
-        const solar = Solar.fromDate(correctedTime);
-        const lunar = solar.getLunar();
-        const ba = lunar.getEightChar(); // 이 객체를 사용하는 것이 가장 정확합니다.
+    // 1. Lunar 객체 및 EightChar 추출
+    const solar = Solar.fromDate(new Date(dtVal));
+    const lunar = solar.getLunar();
+    const ba = lunar.getEightChar();
+    const me = ba.getDayGan();
 
-        const me = ba.getDayGan();
+    // 2. 명식 데이터 배열 (시, 일, 월, 년 순서)
+    const pillars = [
+        { g: ba.getHourGan(), z: ba.getHourZhi(), label: 'HOUR' },
+        { g: ba.getDayGan(), z: ba.getDayZhi(), label: 'DAY', master: true },
+        { g: ba.getMonthGan(), z: ba.getMonthZhi(), label: 'MONTH' },
+        { g: ba.getYearGan(), z: ba.getYearZhi(), label: 'YEAR' }
+    ];
 
-        // 2. 화면 렌더링
-        const updateCell = (id, han, isMe = false) => {
-            const info = BAZI_DATA[han];
-            const el = document.getElementById(id);
-            el.className = `cell ${info[1]} ${isMe ? 'master' : ''}`;
-            el.innerHTML = `<span>${info[0]}</span>${han}`;
-            const starEl = document.getElementById(id + '-s');
-            if(starEl) starEl.innerText = isMe ? "SELF" : getStar(me, han);
-        };
+    // 3. 명식 렌더링
+    const grid = document.getElementById('grid-container');
+    grid.innerHTML = pillars.map(p => `<div><div class="pillar-label">${p.label}</div></div>`).join('');
+    
+    // 천간
+    pillars.forEach(p => {
+        grid.innerHTML += `<div class="cell ${BAZI_DATA[p.g][1]} ${p.master?'outline:4px solid #000':''}"><span>${BAZI_DATA[p.g][0]}</span>${p.g}</div>`;
+    });
+    // 십성(천간)
+    pillars.forEach(p => {
+        grid.innerHTML += `<div class="ten-star">${p.master ? 'SELF' : getStar(me, p.g)}</div>`;
+    });
+    // 지지
+    pillars.forEach(p => {
+        grid.innerHTML += `<div class="cell ${BAZI_DATA[p.z][1]}"><span>${BAZI_DATA[p.z][0]}</span>${p.z}</div>`;
+    });
+    // 십성(지지)
+    pillars.forEach(p => {
+        grid.innerHTML += `<div class="ten-star">${getStar(me, p.z)}</div>`;
+    });
 
-        updateCell('y-gan', ba.getYearGan()); updateCell('y-zhi', ba.getYearZhi());
-        updateCell('m-gan', ba.getMonthGan()); updateCell('m-zhi', ba.getMonthZhi());
-        updateCell('d-gan', ba.getDayGan(), true); updateCell('d-zhi', ba.getDayZhi());
-        updateCell('h-gan', ba.getHourGan()); updateCell('h-zhi', ba.getHourZhi());
+    // 4. 대운 계산 (에러 해결 핵심)
+    const luckList = document.getElementById('luck-list');
+    luckList.innerHTML = '';
+    
+    // 라이브러리에 따라 ba.getFortune()이 안 될 경우 lunar.getEightChar().getFortune() 확인
+    const fortune = ba.getFortune(); 
+    const daYun = fortune.getDaYun(gender).slice(1, 11); // 1대운부터 10개 추출
 
-        // 3. 대운 계산 로직 (에러 방지를 위해 분리)
-        const luckList = document.getElementById('luck-list');
-        luckList.innerHTML = '';
-        const fortune = ba.getFortune();
-        const daYun = fortune.getDaYun(gender);
-        
-        for (let i = 1; i < daYun.length; i++) {
-            const dy = daYun[i];
-            const dg = dy.getGan(); const dz = dy.getZhi();
-            const card = document.createElement('div');
-            card.className = 'luck-card';
-            card.innerHTML = `<div style="font-size:11px; font-weight:bold; margin-bottom:5px;">${dy.getStartAge()}</div>
-                              <div class="mini-cell ${BAZI_DATA[dg][1]}">${dg}</div>
-                              <div class="mini-cell ${BAZI_DATA[dz][1]}">${dz}</div>`;
-            luckList.appendChild(card);
-        }
+    daYun.forEach(dy => {
+        const dg = dy.getGan();
+        const dz = dy.getZhi();
+        const card = document.createElement('div');
+        card.className = 'luck-card';
+        card.innerHTML = `
+            <div style="font-size:11px; font-weight:bold; margin-bottom:5px;">${dy.getStartAge()}</div>
+            <div class="mini-cell ${BAZI_DATA[dg][1]}">${dg}</div>
+            <div class="mini-cell ${BAZI_DATA[dz][1]}">${dz}</div>
+            <div style="font-size:9px; color:#999;">${getStar(me, dg)}<br>${getStar(me, dz)}</div>
+        `;
+        luckList.appendChild(card);
+    });
 
-        document.getElementById('result').style.display = 'block';
-    } catch (e) {
-        console.error(e);
-        alert("데이터 처리 중 오류가 발생했습니다. 생년월일을 다시 확인해주세요.");
-    }
+    document.getElementById('result').style.display = 'block';
 }
 </script>
 </body>
