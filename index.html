@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master Pro - 정밀 계층형 버전</title>
+    <title>Bazi Master Global - Location Correction</title>
     <style>
         :root {
             --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
@@ -13,29 +13,27 @@
         .card { max-width: 550px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box; }
         
         .input-box { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
+        .location-search { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid #eee; }
+        #addr-input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; }
+        .search-btn { background: #444 !important; width: 80px !important; margin: 0 !important; padding: 10px !important; }
+        
         select, input { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 15px; outline: none; }
         input[type="datetime-local"] { flex: 1; }
-        button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
         /* 사주 팔자 */
         .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 30px; }
         .cell { height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 800; }
         .master { border: 4px solid #000; box-sizing: border-box; }
 
-        /* 섹션 공통 */
+        /* 섹션/대운/세운 */
         .section-title { font-size: 15px; font-weight: bold; margin: 20px 0 10px; border-left: 4px solid #000; padding-left: 10px; }
-        .clickable { cursor: pointer; transition: 0.2s; }
-        .clickable:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .active-item { border: 3px solid #000 !important; background: #fff !important; }
-
-        /* 대운 컨테이너 */
         .luck-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
-        .luck-item { min-width: 70px; text-align: center; background: #fafafa; padding: 10px; border-radius: 15px; border: 1px solid #eee; flex-shrink: 0; }
-
-        /* 세운/월운 그리드 */
+        .luck-item { min-width: 70px; text-align: center; background: #fafafa; padding: 10px; border-radius: 15px; border: 1px solid #eee; flex-shrink: 0; cursor: pointer; }
         .sub-section { margin-top: 15px; padding: 15px; border-radius: 15px; display: none; }
         .grid-layout { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-        .mini-item { padding: 8px; background: #fff; border-radius: 10px; text-align: center; border: 1px solid #ddd; font-size: 13px; }
+        .mini-item { padding: 8px; background: #fff; border-radius: 10px; text-align: center; border: 1px solid #ddd; font-size: 13px; cursor: pointer; }
+        .active-item { border: 3px solid #000 !important; }
 
         .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
     </style>
@@ -43,23 +41,33 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center;">MANSEURYEOK PRO</h2>
+    <h2 style="text-align:center;">BAZI MASTER GLOBAL</h2>
+    
     <div class="input-box">
+        <div class="location-search">
+            <div style="font-size: 13px; font-weight: bold; color: #555;">📍 위치 기반 경도 시정 (Location Search)</div>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="addr-input" placeholder="도시명 입력 (e.g. Los Angeles)">
+                <button class="search-btn" onclick="searchLocation()">검색</button>
+            </div>
+            <div id="geo-info" style="font-size: 12px; color: #888;">경도: 미설정 (표준시 기준)</div>
+        </div>
+
         <select id="gender"><option value="M">남성</option><option value="F">여성</option></select>
         <input type="datetime-local" id="birth-dt">
-        <button onclick="analyze()">분석하기</button>
+        <button onclick="analyze()">정밀 분석 실행 (Analyze)</button>
     </div>
 
     <div id="result" style="display:none;">
-        <div class="section-title">사주 명식</div>
-        <div class="bazi-grid" id="main-bazi">
+        <div class="section-title">사주 명식 (True Solar Time Applied)</div>
+        <div class="bazi-grid">
             <div class="column"><div id="h-gan" class="cell"></div><div id="h-zhi" class="cell" style="margin-top:5px;"></div></div>
             <div class="column"><div id="d-gan" class="cell master"></div><div id="d-zhi" class="cell" style="margin-top:5px;"></div></div>
             <div class="column"><div id="m-gan" class="cell"></div><div id="m-zhi" class="cell" style="margin-top:5px;"></div></div>
             <div class="column"><div id="y-gan" class="cell"></div><div id="y-zhi" class="cell" style="margin-top:5px;"></div></div>
         </div>
 
-        <div class="section-title" id="luck-title">대운 (클릭 시 세운 표시)</div>
+        <div class="section-title" id="luck-title">대운</div>
         <div id="luck-list" class="luck-container"></div>
 
         <div id="seun-area" class="sub-section" style="background: #edf2ff;">
@@ -77,108 +85,130 @@
 <script>
 let baziData = null;
 let monthlyData = null;
+let userLon = null; // 검색된 경도
+
 const GANS = "甲乙丙丁戊己庚辛壬癸";
 const ZHIS = "子丑寅卯辰巳午未申酉戌亥";
 const COLORS = {'甲':'wood','乙':'wood','寅':'wood','卯':'wood','丙':'fire','丁':'fire','巳':'fire','午':'fire','戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth','庚':'metal','辛':'metal','申':'metal','酉':'metal','壬':'water','癸':'water','亥':'water','子':'water'};
 
 async function init() {
-    const BASE_URL = 'https://raw.githubusercontent.com/bongjae0624-ui/bazi-Calculator/refs/heads/main/';
+    const BASE = 'https://raw.githubusercontent.com/사용자이름/저장소/main/';
     try {
-        const [res1, res2] = await Promise.all([
-            fetch(BASE_URL + 'bazi_data_1900_2100_with_terms.json'),
-            fetch(BASE_URL + 'monthly_data.json')
+        const [r1, r2] = await Promise.all([
+            fetch(BASE + 'bazi_data_with_terms.json'),
+            fetch(BASE + 'monthly_data.json')
         ]);
-        baziData = await res1.json();
-        monthlyData = await res2.json();
-        console.log("✅ 모든 데이터 준비 완료");
-    } catch(e) { alert("데이터 로드 실패!"); }
+        baziData = await r1.json();
+        monthlyData = await r2.json();
+        console.log("✅ Data Loaded");
+    } catch(e) { console.error("Load Error"); }
 }
 init();
+
+// 위치 검색 (OpenStreetMap Nominatim)
+async function searchLocation() {
+    const q = document.getElementById('addr-input').value;
+    if(!q) return;
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if(data.length > 0) {
+            userLon = parseFloat(data[0].lon);
+            document.getElementById('geo-info').innerText = `📍 설정된 경도: ${userLon.toFixed(2)}° (${data[0].display_name.split(',')[0]})`;
+            alert("위치가 설정되었습니다.");
+        }
+    } catch(e) { alert("위치 검색 오류"); }
+}
 
 function getHourPillar(dayGan, hour) {
     let zIdx = Math.floor((hour + 1) / 2) % 12;
     const startMap = { '甲': 0, '己': 0, '乙': 2, '庚': 2, '丙': 4, '辛': 4, '丁': 6, '壬': 6, '戊': 8, '癸': 8 };
-    let gIdx = (startMap[dayGan] + zIdx) % 10;
-    return GANS[gIdx] + ZHIS[zIdx];
+    return GANS[(startMap[dayGan] + zIdx) % 10] + ZHIS[zIdx];
 }
 
 function analyze() {
     if (!baziData || !monthlyData) return alert("데이터 로딩 중...");
     const dtVal = document.getElementById('birth-dt').value;
-    const birthDt = new Date(dtVal);
-    const gender = document.getElementById('gender').value;
-    const y = birthDt.getFullYear(), m = birthDt.getMonth()+1, d = birthDt.getDate(), h = birthDt.getHours();
+    if(!dtVal) return alert("날짜를 입력하세요.");
+
+    let targetDt = new Date(dtVal);
+    
+    // [경도 시정] 진태양시 계산
+    if(userLon !== null) {
+        const offset = targetDt.getTimezoneOffset(); // 분 단위 (KST -540)
+        const stdLon = (offset * -1) / 4; // 표준시 기준경도 (KST 135)
+        const corrMin = (userLon - stdLon) * 4; // 경도 차이 1도당 4분
+        targetDt = new Date(targetDt.getTime() + (corrMin * 60000));
+    }
+
+    const y = targetDt.getFullYear(), m = targetDt.getMonth()+1, d = targetDt.getDate(), h = targetDt.getHours();
 
     try {
         const raw = baziData[y][m][d].split('|');
         const yP = raw[0], mP = raw[1], dP = raw[2], prevT = raw[4], nextT = raw[6];
         const hP = getHourPillar(dP[0], h);
 
-        const update = (id, pillar, isM = false) => {
-            document.getElementById(`${id}-gan`).innerText = pillar[0];
-            document.getElementById(`${id}-gan`).className = `cell ${COLORS[pillar[0]]} ${isM ? 'master' : ''}`;
-            document.getElementById(`${id}-zhi`).innerText = pillar[1];
-            document.getElementById(`${id}-zhi`).className = `cell ${COLORS[pillar[1]]}`;
+        const up = (id, p, mstr=false) => {
+            document.getElementById(`${id}-gan`).innerText = p[0];
+            document.getElementById(`${id}-gan`).className = `cell ${COLORS[p[0]]} ${mstr?'master':''}`;
+            document.getElementById(`${id}-zhi`).innerText = p[1];
+            document.getElementById(`${id}-zhi`).className = `cell ${COLORS[p[1]]}`;
         };
-        update('y', yP); update('m', mP); update('d', dP, true); update('h', hP);
+        up('y', yP); up('m', mP); up('d', dP, true); up('h', hP);
 
         // 대운수 계산 (3분법)
         const isYang = "甲丙戊庚壬".includes(yP[0]);
-        const isFwd = (gender === 'M' && isYang) || (gender === 'F' && !isYang);
-        const targetT = isFwd ? new Date(nextT.replace(/-/g, "/")) : new Date(prevT.replace(/-/g, "/"));
-        let luckNum = Math.round(Math.abs(targetT - birthDt) / (1000*60*60*24*3));
-        luckNum = Math.max(1, Math.min(10, luckNum));
+        const isFwd = (document.getElementById('gender').value === 'M' && isYang) || (document.getElementById('gender').value === 'F' && !isYang);
+        const termDt = isFwd ? new Date(nextT.replace(/-/g, "/")) : new Date(prevT.replace(/-/g, "/"));
+        let lNum = Math.round(Math.abs(termDt - targetDt) / (1000*60*60*24*3));
+        lNum = Math.max(1, Math.min(10, lNum));
 
-        // 대운 리스트 생성
-        const luckListEl = document.getElementById('luck-list');
-        luckListEl.innerHTML = '';
-        let curG = GANS.indexOf(mP[0]), curZ = ZHIS.indexOf(mP[1]);
+        document.getElementById('luck-title').innerText = `대운 흐름 (${lNum}대운)`;
+        const list = document.getElementById('luck-list');
+        list.innerHTML = '';
+        let cG = GANS.indexOf(mP[0]), cZ = ZHIS.indexOf(mP[1]);
 
         for (let i = 0; i < 10; i++) {
-            if (isFwd) { curG = (curG+1)%10; curZ = (curZ+1)%12; }
-            else { curG = (curG+9)%10; curZ = (curZ+11)%12; }
-            const g = GANS[curG], z = ZHIS[curZ];
-            const startYear = y + luckNum + (i * 10) - (y % 1 === 0 ? 0 : 0); // 단순화된 시작년도
-
-            luckListEl.innerHTML += `
-                <div class="luck-item clickable" onclick="showSeun(${y + luckNum + (i*10)}, this)">
-                    <div class="luck-age">${luckNum + (i*10)}세</div>
-                    <div class="luck-ganzhi" style="color:${getColorCode(g)}">${g}<br>${z}</div>
+            if (isFwd) { cG=(cG+1)%10; cZ=(cZ+1)%12; }
+            else { cG=(cG+9)%10; cZ=(cZ+11)%12; }
+            const g = GANS[cG], z = ZHIS[cZ];
+            list.innerHTML += `
+                <div class="luck-item" onclick="showSeun(${y + lNum + (i*10)}, this)">
+                    <div style="font-size:12px; font-weight:bold;">${lNum+(i*10)}세</div>
+                    <div style="font-size:18px; font-weight:900; color:${getCol(g)}">${g}<br>${z}</div>
                 </div>`;
         }
         document.getElementById('result').style.display = 'block';
-    } catch(e) { alert("분석 오류"); }
+    } catch(e) { alert("분석 실패"); }
 }
 
-function showSeun(startY, obj) {
-    document.querySelectorAll('.luck-item').forEach(el => el.classList.remove('active-item'));
+function showSeun(sy, obj) {
+    document.querySelectorAll('.luck-item').forEach(e => e.classList.remove('active-item'));
     obj.classList.add('active-item');
     document.getElementById('seun-area').style.display = 'block';
     document.getElementById('wolun-area').style.display = 'none';
-    
-    const list = document.getElementById('seun-list');
-    list.innerHTML = '';
+    const l = document.getElementById('seun-list');
+    l.innerHTML = '';
     for(let i=0; i<10; i++) {
-        const year = startY + i;
-        const off = (year - 1900 + 36) % 60;
+        const yr = sy + i;
+        const off = (yr - 1900 + 36) % 60;
         const g = GANS[off%10], z = ZHIS[off%12];
-        list.innerHTML += `<div class="mini-item clickable" onclick="showWolun(${year}, this)">${year}<br>${g}${z}</div>`;
+        l.innerHTML += `<div class="mini-item" onclick="showWolun(${yr}, this)">${yr}<br>${g}${z}</div>`;
     }
 }
 
-function showWolun(year, obj) {
-    document.querySelectorAll('.mini-item').forEach(el => el.classList.remove('active-item'));
+function showWolun(yr, obj) {
+    document.querySelectorAll('.mini-item').forEach(e => e.classList.remove('active-item'));
     obj.classList.add('active-item');
     document.getElementById('wolun-area').style.display = 'block';
-    
-    const list = document.getElementById('wolun-list');
-    list.innerHTML = '';
+    const l = document.getElementById('wolun-list');
+    l.innerHTML = '';
     for(let m=1; m<=12; m++) {
-        list.innerHTML += `<div class="mini-item"><b>${m}월</b><br>${monthlyData[year][m]}</div>`;
+        l.innerHTML += `<div class="mini-item"><b>${m}월</b><br>${monthlyData[yr][m]}</div>`;
     }
 }
 
-function getColorCode(c) {
+function getCol(c) {
     const t = COLORS[c];
     return t==='wood'?'#27ae60':t==='fire'?'#e74c3c':t==='earth'?'#f1c40f':t==='metal'?'#7f8c8d':'#2c3e50';
 }
