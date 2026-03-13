@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Bazi Mastery</title>
+    <title>Bazi Mastery Tool</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root { --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #bdc3c7; --water: #2c3e50; }
-        body { background: #f8fafc; font-family: -apple-system, system-ui, sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        body { background: #f8fafc; font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
         #app { max-width: 500px; width: 100%; background: #fff; padding: 35px; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
         .input-group { margin-bottom: 20px; position: relative; }
         label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; }
         input, select { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; box-sizing: border-box; font-size: 16px; outline: none; }
-        #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #eee; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 12px; margin-top: 5px; }
+        #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #eee; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 12px; margin-top: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .city-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
         .city-item:hover { background: #f8fafc; }
         button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 14px; font-weight: 800; font-size: 17px; cursor: pointer; }
@@ -30,7 +30,7 @@
 <body>
 
 <div id="app">
-    <h2 style="text-align:center; margin-top:0;">Bazi Mastery Tool</h2>
+    <h2 style="text-align:center; margin-top:0; letter-spacing:-1px;">Bazi Destiny Tool</h2>
     <div class="input-group">
         <label>Birth City</label>
         <input type="text" id="city-in" placeholder="Search City (e.g. New York)" autocomplete="off">
@@ -45,11 +45,11 @@
         <label>Gender</label>
         <select id="user-gen"><option value="1">Male</option><option value="0">Female</option></select>
     </div>
-    <button id="calc-btn">GENERATE CHART</button>
+    <button id="calc-btn">GENERATE DESTINY CHART</button>
 
     <div id="result">
         <div class="grid">
-            <div style="font-size:9px; color:#cbd5e1;">HOUR</div><div style="font-size:9px; color:#cbd5e1;">DAY</div><div style="font-size:9px; color:#cbd5e1;">MONTH</div><div style="font-size:9px; color:#cbd5e1;">YEAR</div>
+            <div style="font-size:9px; font-weight:800; color:#cbd5e1;">HOUR</div><div style="font-size:9px; font-weight:800; color:#cbd5e1;">DAY</div><div style="font-size:9px; font-weight:800; color:#cbd5e1;">MONTH</div><div style="font-size:9px; font-weight:800; color:#cbd5e1;">YEAR</div>
             
             <div id="h1" class="p-box"></div><div id="d1" class="p-box master"></div><div id="m1" class="p-box"></div><div id="y1" class="p-box"></div>
             <div id="sh1" class="god"></div><div class="god" style="color:#000;">SELF</div><div id="sm1" class="god"></div><div id="sy1" class="god"></div>
@@ -88,75 +88,70 @@ cityIn.addEventListener('input', function() {
     });
 });
 
-// 2. Main Logic
+// 2. Main Calc
 document.getElementById('calc-btn').onclick = function() {
     const dtVal = document.getElementById('user-dt').value;
     if(!dtVal) return alert("Select birth date.");
     const lon = parseFloat(document.getElementById('user-lon').value);
     const gen = parseInt(document.getElementById('user-gen').value);
     
-    // Correct Time
     const dateObj = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
     
-    try {
-        const solar = Solar.fromDate(dateObj);
-        const ba = solar.getLunar().getEightChar();
-        
-        // 십성 추출 로직 - 가장 안전한 방식으로 교체
-        const gans = [ba.getTimeGan(), ba.getDayGan(), ba.getMonthGan(), ba.getYearGan()];
-        const zhis = [ba.getTimeZhi(), ba.getDayZhi(), ba.getMonthZhi(), ba.getYearZhi()];
-        
-        // 최신 버전 호환성 코드: 함수가 없으면 빈 문자열 처리
-        const getGod = (type, pos) => {
-            try {
-                if(type === 'gan') {
-                    if(pos === 0) return ba.getTimeTenStarGan();
-                    if(pos === 2) return ba.getMonthTenStarGan();
-                    if(pos === 3) return ba.getYearTenStarGan();
-                } else {
-                    const zStars = [ba.getTimeTenStarZhi(), ba.getDayTenStarZhi(), ba.getMonthTenStarZhi(), ba.getYearTenStarZhi()];
-                    return zStars[pos] ? zStars[pos][0] : "";
-                }
-            } catch(e) { return ""; }
-            return "";
-        };
+    if(typeof Solar === 'undefined') return alert("Loading engine...");
 
-        // Render 8 Pillars
-        const ids = ['h','d','m','y'];
-        for(let i=0; i<4; i++) {
-            renderBox(ids[i]+'1', 's'+ids[i]+'1', gans[i], getGod('gan', i));
-            renderBox(ids[i]+'2', 's'+ids[i]+'2', zhis[i], getGod('zhi', i));
-        }
+    const solar = Solar.fromDate(dateObj);
+    const ba = solar.getLunar().getEightChar();
+    
+    // 가장 안전하게 데이터를 뽑는 방법 (함수 호출 대신 배열 직접 매칭)
+    const gans = ba.getGans(); // [년, 월, 일, 시] 또는 [시, 일, 월, 년] 순서 확인 필요
+    // lunar-javascript의 getGans()는 [year, month, day, hour] 순서입니다.
+    
+    const yGan = ba.getYearGan(); const mGan = ba.getMonthGan(); const dGan = ba.getDayGan(); const hGan = ba.getTimeGan();
+    const yZhi = ba.getYearZhi(); const mZhi = ba.getMonthZhi(); const dZhi = ba.getDayZhi(); const hZhi = ba.getTimeZhi();
 
-        // Render Luck (DaYun)
-        const luckArea = document.getElementById('luck-list');
-        luckArea.innerHTML = '';
-        const yun = ba.getFortune().getDaYun(gen); 
-        for(let j=1; j<9; j++) {
-            const dy = yun[j];
-            if(!dy) continue;
-            luckArea.innerHTML += `
-                <div class="luck-card">
-                    <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">Age ${dy.getStartAge()}</div>
-                    <div class="p-box ${MAP[dy.getGan()][1]}" style="height:32px; font-size:14px; margin-bottom:4px; border-radius:8px;">${dy.getGan()}</div>
-                    <div class="p-box ${MAP[dy.getZhi()][1]}" style="height:32px; font-size:14px; border-radius:8px;">${dy.getZhi()}</div>
-                </div>`;
-        }
-        document.getElementById('result').style.display = 'block';
-    } catch(e) {
-        alert("Calculation engine updating. Please try again.");
+    // 십성 (Ten Stars) - 에러 방지를 위해 하나씩 안전하게 호출
+    const getS = (fn) => { try { return ba[fn](); } catch(e) { return ""; } };
+    const getZ = (fn) => { try { return ba[fn]()[0]; } catch(e) { return ""; } };
+
+    // 시간-일-월-년 순서로 렌더링
+    renderBox('h1', 'sh1', hGan, getS('getTimeTenStarGan'));
+    renderBox('d1', '', dGan, "");
+    renderBox('m1', 'sm1', mGan, getS('getMonthTenStarGan'));
+    renderBox('y1', 'sy1', yGan, getS('getYearTenStarGan'));
+
+    renderBox('h2', 'sh2', hZhi, getZ('getTimeTenStarZhi'));
+    renderBox('d2', 'sd2', dZhi, getZ('getDayTenStarZhi'));
+    renderBox('m2', 'sm2', mZhi, getZ('getMonthTenStarZhi'));
+    renderBox('y2', 'sy2', yZhi, getZ('getYearTenStarZhi'));
+
+    // 대운 (DaYun)
+    const luckArea = document.getElementById('luck-list');
+    luckArea.innerHTML = '';
+    const yun = ba.getFortune().getDaYun(gen); 
+    for(let j=1; j<9; j++) {
+        const dy = yun[j];
+        if(!dy) continue;
+        luckArea.innerHTML += `
+            <div class="luck-card">
+                <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">Age ${dy.getStartAge()}</div>
+                <div class="p-box ${MAP[dy.getGan()][1]}" style="height:32px; font-size:14px; margin-bottom:4px; border-radius:8px;">${dy.getGan()}</div>
+                <div class="p-box ${MAP[dy.getZhi()][1]}" style="height:32px; font-size:14px; border-radius:8px;">${dy.getZhi()}</div>
+            </div>`;
     }
+    document.getElementById('result').style.display = 'block';
 };
 
 function renderBox(id, sid, han, ten) {
     const info = MAP[han]; if(!info) return;
     const el = document.getElementById(id);
-    const sel = document.getElementById(sid);
     if(el) {
         el.className = 'p-box ' + info[1] + (id==='d1'?' master':'');
         el.innerHTML = `<span>${info[0]}</span>${han}`;
     }
-    if(sel && sid !== 'sd1') sel.innerText = GODS[ten] || ten || "";
+    if(sid) {
+        const sel = document.getElementById(sid);
+        if(sel) sel.innerText = GODS[ten] || ten || "";
+    }
 }
 </script>
 </body>
