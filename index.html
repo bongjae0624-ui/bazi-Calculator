@@ -3,41 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Bazi Calculator - Discover Your Destiny</title>
+    <title>Bazi Chart Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
-        body { background-color: #f5f7fa; font-family: 'Inter', -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        #app { max-width: 500px; width: 90%; background: #fff; padding: 30px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        h1 { text-align: center; font-size: 22px; color: #1a1a1a; margin-bottom: 30px; }
-        .input-group { margin-bottom: 20px; }
-        label { display: block; font-size: 11px; font-weight: 800; color: #888; margin-bottom: 8px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; }
-        input:focus { border-color: #000; }
-        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        #result { display: none; margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px; animation: fadeIn 0.6s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { background-color: #f8f9fa; font-family: -apple-system, system-ui, sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        #app { max-width: 480px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; background: #fafafa; }
+        button { width: 100%; padding: 16px; background: #000; color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:active { transform: scale(0.98); }
+        
+        #result { display: none; margin-top: 30px; border-top: 2px solid #f1f1f1; padding-top: 25px; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
-        .tag { font-size: 9px; font-weight: 800; color: #bbb; margin-bottom: 5px; }
-        .pillar { height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 12px; color: #fff; font-weight: 700; font-size: 18px; }
-        .pillar span { font-size: 9px; font-weight: 400; opacity: 0.9; margin-bottom: 2px; }
-        .god { font-size: 10px; font-weight: 700; color: #666; height: 20px; margin-top: 5px; text-transform: uppercase; }
-        .luck-wrap { display: flex; overflow-x: auto; gap: 10px; margin-top: 20px; padding-bottom: 10px; }
-        .luck-card { min-width: 65px; background: #f9f9f9; padding: 12px 5px; border-radius: 10px; text-align: center; flex-shrink: 0; }
-        .luck-age { font-size: 10px; font-weight: 800; color: #aaa; margin-bottom: 8px; }
-        .luck-val { font-size: 14px; color: #fff; font-weight: 700; padding: 3px 0; margin: 2px 5px; border-radius: 5px; }
-        .wood { background: #27ae60; } .fire { background: #e74c3c; } .earth { background: #f1c40f; color: #333 !important; } .metal { background: #bdc3c7; color: #333 !important; } .water { background: #2c3e50; }
-        .master { box-shadow: 0 0 0 3px #000 inset; }
+        .pillar { height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px; color: #fff; font-weight: 700; font-size: 17px; }
+        .pillar span { font-size: 9px; font-weight: 400; opacity: 0.8; margin-bottom: 2px; }
+        .god { font-size: 10px; font-weight: 700; color: #777; margin-top: 4px; height: 15px; text-transform: uppercase; }
+        .luck-wrap { display: flex; overflow-x: auto; gap: 8px; margin-top: 15px; padding-bottom: 10px; }
+        .luck-card { min-width: 60px; background: #fdfdfd; padding: 10px 5px; border: 1px solid #f1f1f1; border-radius: 8px; text-align: center; flex-shrink: 0; }
+        
+        .wood { background: #2ecc71; } .fire { background: #e74c3c; } .earth { background: #f1c40f; color: #333 !important; } .metal { background: #95a5a6; color: #333 !important; } .water { background: #34495e; }
+        .master { outline: 3px solid #000; outline-offset: -3px; }
     </style>
 </head>
 <body>
+
 <div id="app">
-    <h1>Bazi Chart Generator</h1>
+    <h2 style="text-align:center; margin-top:0;">Bazi Calculator</h2>
     <div class="input-group">
         <label>Birth Date & Time</label>
         <input type="datetime-local" id="dt">
     </div>
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
         <div style="flex: 1;">
             <label>Gender</label>
             <select id="gen"><option value="1">Male</option><option value="0">Female</option></select>
@@ -47,59 +44,36 @@
             <input type="number" id="lon" value="127.0" step="0.1">
         </div>
     </div>
-    <button id="btn">GENERATE MY CHART</button>
+    <button id="run-btn" type="button">GENERATE CHART</button>
 
     <div id="result">
         <div class="grid">
-            <div class="tag">HOUR</div><div class="tag">DAY</div><div class="tag">MONTH</div><div class="tag">YEAR</div>
+            <div style="font-size:9px; color:#ccc;">HOUR</div><div style="font-size:9px; color:#ccc;">DAY</div><div style="font-size:9px; color:#ccc;">MONTH</div><div style="font-size:9px; color:#ccc;">YEAR</div>
             <div id="c-h1" class="pillar"></div><div id="c-d1" class="pillar master"></div><div id="c-m1" class="pillar"></div><div id="c-y1" class="pillar"></div>
             <div id="s-h1" class="god"></div><div class="god">SELF</div><div id="s-m1" class="god"></div><div id="s-y1" class="god"></div>
             <div id="c-h2" class="pillar"></div><div id="c-d2" class="pillar"></div><div id="c-m2" class="pillar"></div><div id="c-y2" class="pillar"></div>
             <div id="s-h2" class="god"></div><div id="s-d2" class="god"></div><div id="s-m2" class="god"></div><div id="s-y2" class="god"></div>
         </div>
-        <div style="margin-top: 30px; font-size: 13px; font-weight: 800; color: #333;">10-YEAR LUCK PILLARS</div>
         <div id="luck-list" class="luck-wrap"></div>
     </div>
 </div>
 
 <script>
-const MAP = {'甲':['Yang Wood','wood'],'乙':['Yin Wood','wood'],'丙':['Yang Fire','fire'],'丁':['Yin Fire','fire'],'戊':['Yang Earth','earth'],'己':['Yin Earth','earth'],'庚':['Yang Metal','metal'],'辛':['Yin Metal','metal'],'壬':['Yang Water','water'],'癸':['Yin Water','water'],'子':['Rat','water'],'丑':['Ox','earth'],'寅':['Tiger','wood'],'卯':['Rabbit','wood'],'辰':['Dragon','earth'],'巳':['Snake','fire'],'午':['Horse','fire'],'未':['Goat','earth'],'申':['Monkey','metal'],'酉':['Rooster','metal'],'戌':['Dog','earth'],'亥':['Pig','water']};
-const GODS = {'비견':'Friend','겁재':'Robber','식신':'Eating','상관':'Hurt','편재':'Wealth','정재':'D-Wealth','편관':'7-Kills','정관':'Officer','편인':'Owl','정인':'Resource'};
+// 데이터 맵핑
+const M = {'甲':['Yang Wood','wood'],'乙':['Yin Wood','wood'],'丙':['Yang Fire','fire'],'丁':['Yin Fire','fire'],'戊':['Yang Earth','earth'],'己':['Yin Earth','earth'],'庚':['Yang Metal','metal'],'辛':['Yin Metal','metal'],'壬':['Yang Water','water'],'癸':['Yin Water','water'],'子':['Rat','water'],'丑':['Ox','earth'],'寅':['Tiger','wood'],'卯':['Rabbit','wood'],'辰':['Dragon','earth'],'巳':['Snake','fire'],'午':['Horse','fire'],'미':['Goat','earth'],'申':['Monkey','metal'],'酉':['Rooster','metal'],'戌':['Dog','earth'],'亥':['Pig','water']};
+const G = {'비견':'Friend','겁재':'Robber','식신':'Eating','상관':'Hurt','편재':'Wealth','정재':'D-Wealth','편관':'7-Kills','정관':'Officer','편인':'Owl','정인':'Resource'};
 
-document.getElementById('btn').onclick = function() {
-    const dtVal = document.getElementById('dt').value;
-    if(!dtVal) return alert("Please select date!");
-    const lon = parseFloat(document.getElementById('lon').value);
-    const gen = parseInt(document.getElementById('gen').value);
-    const solarDate = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
-    const ba = Solar.fromDate(solarDate).getLunar().getEightChar();
-    ba.setGender(gen);
+// 페이지 로드 완료 후 실행
+window.onload = function() {
+    const runBtn = document.getElementById('run-btn');
     
-    const pos = ['h','d','m','y'];
-    const gans = [ba.getTimeGan(), ba.getDayGan(), ba.getMonthGan(), ba.getYearGan()];
-    const zhis = [ba.getTimeZhi(), ba.getDayZhi(), ba.getMonthZhi(), ba.getYearZhi()];
-    const gTen = [ba.getTimeTenStarGan(), "", ba.getMonthTenStarGan(), ba.getYearTenStarGan()];
-    const zTen = [ba.getTimeTenStarZhi()[0], ba.getDayTenStarZhi()[0], ba.getMonthTenStarZhi()[0], ba.getYearTenStarZhi()[0]];
+    runBtn.onclick = function() {
+        // 1. 라이브러리 체크
+        if(typeof Solar === 'undefined') {
+            alert("Engine is still loading. Please wait 2-3 seconds.");
+            return;
+        }
 
-    for(let i=0; i<4; i++) {
-        fill('c-'+pos[i]+'1', 's-'+pos[i]+'1', gans[i], gTen[i]);
-        fill('c-'+pos[i]+'2', 's-'+pos[i]+'2', zhis[i], zTen[i]);
-    }
-    const ll = document.getElementById('luck-list'); ll.innerHTML = '';
-    const yun = ba.getFortune().getDaYun();
-    for(let j=1; j<9; j++) {
-        const dy = yun[j];
-        ll.innerHTML += `<div class="luck-card"><div class="luck-age">Age ${dy.getStartAge()}</div><div class="luck-val ${MAP[dy.getGan()][1]}">${dy.getGan()}</div><div class="luck-val ${MAP[dy.getZhi()][1]}">${dy.getZhi()}</div></div>`;
-    }
-    document.getElementById('result').style.display = 'block';
-};
-
-function fill(cid, sid, han, ten) {
-    const info = MAP[han]; const el = document.getElementById(cid); const sel = document.getElementById(sid);
-    el.className = 'pillar ' + info[1] + (cid==='c-d1'?' master':'');
-    el.innerHTML = `<span>${info[0]}</span>${han}`;
-    if(sel && sid !== 's-d1') sel.innerText = GODS[ten] || ten || "";
-}
-</script>
-</body>
-</html>
+        // 2. 입력값 확인
+        const dtVal = document.getElementById('dt').value;
+        if(!dtVal) {
