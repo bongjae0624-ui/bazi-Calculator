@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Bazi Mastery</title>
+    <title>Bazi Chart Mastery</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root { --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #bdc3c7; --water: #2c3e50; }
@@ -11,10 +11,7 @@
         #app { max-width: 500px; width: 100%; background: #fff; padding: 35px; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
         .input-group { margin-bottom: 20px; position: relative; }
         label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; box-sizing: border-box; font-size: 16px; outline: none; }
-        #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #eee; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 12px; margin-top: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .city-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-        .city-item:hover { background: #f8fafc; font-weight: bold; }
+        input { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; box-sizing: border-box; font-size: 16px; outline: none; }
         button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 14px; font-weight: 800; font-size: 17px; cursor: pointer; }
         #result { display: none; margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
@@ -22,30 +19,22 @@
         .p-box span { font-size: 10px; font-weight: 400; opacity: 0.8; margin-bottom: 3px; }
         .master { outline: 4px solid #000; outline-offset: -4px; }
         .god { font-size: 10px; font-weight: 700; color: #94a3b8; margin: 6px 0 15px; text-transform: uppercase; min-height: 12px; }
-        .luck-list { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
-        .luck-card { min-width: 65px; background: #fdfdfd; padding: 12px 5px; border-radius: 12px; text-align: center; flex-shrink: 0; border: 1px solid #eee; }
         .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); color: #333 !important; } .water { background: var(--water); }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <h2 style="text-align:center; margin-top:0; letter-spacing:-1px;">Bazi Mastery</h2>
+    <h2 style="text-align:center; margin-top:0;">Bazi Mastery</h2>
     <div class="input-group">
-        <label>Birth City</label>
-        <input type="text" id="city-in" placeholder="Search City (e.g. New York)" autocomplete="off">
-        <div id="city-results"></div>
-        <input type="hidden" id="user-lon" value="127.0">
+        <label>Birth Longitude (Default: Seoul 127.0)</label>
+        <input type="number" id="user-lon" value="127.0" step="0.1">
     </div>
     <div class="input-group">
         <label>Birth Date & Time</label>
         <input type="datetime-local" id="user-dt">
     </div>
-    <div class="input-group">
-        <label>Gender</label>
-        <select id="user-gen"><option value="1">Male</option><option value="0">Female</option></select>
-    </div>
-    <button id="calc-btn">GENERATE DESTINY CHART</button>
+    <button id="calc-btn">GENERATE CHART</button>
 
     <div id="result">
         <div class="grid">
@@ -57,93 +46,50 @@
             <div id="h2" class="p-box"></div><div id="d2" class="p-box"></div><div id="m2" class="p-box"></div><div id="y2" class="p-box"></div>
             <div id="sh2" class="god"></div><div id="sd2" class="god"></div><div id="sm2" class="god"></div><div id="sy2" class="god"></div>
         </div>
-        <div style="margin: 25px 0 10px; font-size: 14px; font-weight: 800;">10-YEAR LUCK PILLARS</div>
-        <div id="luck-list" class="luck-list"></div>
     </div>
 </div>
 
 <script>
+// 데이터 매핑 및 직접 계산 로직
 const DATA = {'甲':['Yang Wood','wood',0],'乙':['Yin Wood','wood',1],'丙':['Yang Fire','fire',2],'丁':['Yin Fire','fire',3],'戊':['Yang Earth','earth',4],'己':['Yin Earth','earth',5],'庚':['Yang Metal','metal',6],'辛':['Yin Metal','metal',7],'壬':['Yang Water','water',8],'癸':['Yin Water','water',9],'子':['Rat','water',9],'丑':['Ox','earth',5],'寅':['Tiger','wood',0],'卯':['Rabbit','wood',1],'辰':['Dragon','earth',4],'巳':['Snake','fire',2],'午':['Horse','fire',3],'未':['Goat','earth',5],'申':['Monkey','metal',6],'酉':['Rooster','metal',7],'戌':['Dog','earth',4],'亥':['Pig','water',8]};
 const GOD_NAMES = ['Friend','Robber','Eating','Hurt','Wealth','D-Wealth','7-Kills','Officer','Owl','Resource'];
 
-// 십성 직접 계산 로직 (에러 원천 차단)
 function getTenStar(me, target) {
-    const meIdx = DATA[me][2];
-    const targetIdx = DATA[target][2];
-    let diff = targetIdx - meIdx;
-    if (diff < 0) diff += 10;
+    const meIdx = DATA[me][2]; const targetIdx = DATA[target][2];
+    let diff = targetIdx - meIdx; if (diff < 0) diff += 10;
     return GOD_NAMES[diff];
 }
-
-// 도시 검색
-const cityIn = document.getElementById('city-in');
-const cityRes = document.getElementById('city-results');
-cityIn.addEventListener('input', function() {
-    if(this.value.length < 3) { cityRes.style.display='none'; return; }
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.value}&limit=5`)
-    .then(r => r.json()).then(data => {
-        cityRes.innerHTML = '';
-        data.forEach(item => {
-            const d = document.createElement('div'); d.className = 'city-item';
-            d.innerText = item.display_name;
-            d.onclick = () => {
-                document.getElementById('user-lon').value = item.lon;
-                cityIn.value = item.display_name.split(',')[0];
-                cityRes.style.display = 'none';
-            };
-            cityRes.appendChild(d);
-        });
-        cityRes.style.display = 'block';
-    });
-});
 
 document.getElementById('calc-btn').onclick = function() {
     const dtVal = document.getElementById('user-dt').value;
     if(!dtVal) return alert("Select birth date.");
     const lon = parseFloat(document.getElementById('user-lon').value);
-    const gen = parseInt(document.getElementById('user-gen').value);
     
+    // 시간 보정 및 기본 팔자 한자 추출 (가장 안전한 기본 함수만 사용)
     const dateObj = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
-    const solar = Solar.fromDate(dateObj);
-    const ba = solar.getLunar().getEightChar();
+    const lunar = Solar.fromDate(dateObj).getLunar();
     
-    const hG = ba.getTimeGan(), dG = ba.getDayGan(), mG = ba.getMonthGan(), yG = ba.getYearGan();
-    const hZ = ba.getTimeZhi(), dZ = ba.getDayZhi(), mZ = ba.getMonthZhi(), yZ = ba.getYearZhi();
+    // 라이브러리의 복잡한 객체 대신 단순 한자 텍스트만 뽑음
+    const yG = lunar.getYearGan(), mG = lunar.getMonthGan(), dG = lunar.getDayGan(), hG = lunar.getTimeGan();
+    const yZ = lunar.getYearZhi(), mZ = lunar.getMonthZhi(), dZ = lunar.getDayZhi(), hZ = lunar.getTimeZhi();
 
-    // 일간(Me) 기준으로 십성 직접 계산
-    renderBox('h1', 'sh1', hG, getTenStar(dG, hG));
-    renderBox('d1', '', dG, "");
-    renderBox('m1', 'sm1', mG, getTenStar(dG, mG));
-    renderBox('y1', 'sy1', yG, getTenStar(dG, yG));
+    // 렌더링 실행
+    renderBox('y1', 'sy1', yG, dG); renderBox('m1', 'sm1', mG, dG); renderBox('d1', '', dG, dG); renderBox('h1', 'sh1', hG, dG);
+    renderBox('y2', 'sy2', yZ, dG); renderBox('m2', 'sm2', mZ, dG); renderBox('d2', 'sd2', dZ, dG); renderBox('h2', 'sh2', hZ, dG);
 
-    renderBox('h2', 'sh2', hZ, getTenStar(dG, hZ));
-    renderBox('d2', 'sd2', dZ, getTenStar(dG, dZ));
-    renderBox('m2', 'sm2', mZ, getTenStar(dG, mZ));
-    renderBox('y2', 'sy2', yZ, getTenStar(dG, yZ));
-
-    const luckArea = document.getElementById('luck-list');
-    luckArea.innerHTML = '';
-    const yun = ba.getFortune().getDaYun(gen); 
-    for(let j=1; j<9; j++) {
-        const dy = yun[j];
-        if(!dy) continue;
-        luckArea.innerHTML += `<div class="luck-card">
-            <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">Age ${dy.getStartAge()}</div>
-            <div class="p-box ${DATA[dy.getGan()][1]}" style="height:32px; font-size:14px; margin-bottom:4px; border-radius:8px;">${dy.getGan()}</div>
-            <div class="p-box ${DATA[dy.getZhi()][1]}" style="height:32px; font-size:14px; border-radius:8px;">${dy.getZhi()}</div>
-        </div>`;
-    }
     document.getElementById('result').style.display = 'block';
 };
 
-function renderBox(id, sid, han, ten) {
+function renderBox(id, sid, han, me) {
     const info = DATA[han]; if(!info) return;
     const el = document.getElementById(id);
     if(el) {
         el.className = 'p-box ' + info[1] + (id==='d1'?' master':'');
         el.innerHTML = `<span>${info[0]}</span>${han}`;
     }
-    if(sid) document.getElementById(sid).innerText = ten;
+    if(sid) {
+        document.getElementById(sid).innerText = (id==='d1') ? "SELF" : getTenStar(me, han);
+    }
 }
 </script>
 </body>
