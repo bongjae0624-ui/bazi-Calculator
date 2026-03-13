@@ -7,30 +7,33 @@
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root { --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #bdc3c7; --water: #2c3e50; }
-        body { background: #f1f5f9; font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 20px; }
-        #app { max-width: 500px; width: 100%; background: #fff; padding: 35px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        body { background: #f8fafc; font-family: -apple-system, system-ui, sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        #app { max-width: 500px; width: 100%; background: #fff; padding: 35px; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
         .input-group { margin-bottom: 20px; position: relative; }
-        label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 6px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
-        #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #ddd; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 8px; margin-top: 5px; }
+        label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: #000; }
+        #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #eee; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 12px; margin-top: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .city-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-        .city-item:hover { background: #f1f5f9; }
-        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; }
-        #result { display: none; margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px; }
+        .city-item:hover { background: #f8fafc; font-weight: bold; }
+        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 14px; font-weight: 800; font-size: 17px; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
+        #result { display: none; margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .p-box { height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 14px; color: #fff; font-weight: 800; font-size: 19px; }
+        .p-box { height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 16px; color: #fff; font-weight: 800; font-size: 20px; }
         .p-box span { font-size: 10px; font-weight: 400; opacity: 0.8; margin-bottom: 3px; }
         .master { outline: 4px solid #000; outline-offset: -4px; }
-        .god { font-size: 10px; font-weight: 700; color: #94a3b8; margin: 5px 0 15px; text-transform: uppercase; }
-        .luck-list { display: flex; overflow-x: auto; gap: 10px; margin-top: 15px; padding-bottom: 10px; }
-        .luck-card { min-width: 65px; background: #f8fafc; padding: 12px 5px; border-radius: 12px; text-align: center; flex-shrink: 0; border: 1px solid #e2e8f0; }
+        .god { font-size: 10px; font-weight: 700; color: #94a3b8; margin: 6px 0 15px; text-transform: uppercase; }
+        .luck-list { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
+        .luck-card { min-width: 65px; background: #fdfdfd; padding: 12px 5px; border-radius: 12px; text-align: center; flex-shrink: 0; border: 1px solid #eee; }
         .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); color: #333 !important; } .water { background: var(--water); }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <h2 style="text-align:center; margin-top:0;">Bazi Mastery</h2>
+    <h2 style="text-align:center; margin-top:0; letter-spacing:-1px;">Bazi Destiny Tool</h2>
     <div class="input-group">
         <label>Birth City</label>
         <input type="text" id="city-in" placeholder="Search City (e.g. New York)" autocomplete="off">
@@ -49,12 +52,15 @@
 
     <div id="result">
         <div class="grid">
-            <div style="font-size:9px; color:#cbd5e1;">HOUR</div><div style="font-size:9px; color:#cbd5e1;">DAY</div><div style="font-size:9px; color:#cbd5e1;">MONTH</div><div style="font-size:9px; color:#cbd5e1;">YEAR</div>
+            <div style="font-size:9px; font-weight:800; color:#cbd5e1;">HOUR</div><div style="font-size:9px; font-weight:800; color:#cbd5e1;">DAY</div><div style="font-size:9px; font-weight:800; color:#cbd5e1;">MONTH</div><div style="font-size:9px; font-weight:800; color:#cbd5e1;">YEAR</div>
+            
             <div id="h1" class="p-box"></div><div id="d1" class="p-box master"></div><div id="m1" class="p-box"></div><div id="y1" class="p-box"></div>
-            <div id="gh1" class="god"></div><div class="god" style="color:#000;">SELF</div><div id="gm1" class="god"></div><div id="gy1" class="god"></div>
+            <div id="sh1" class="god"></div><div class="god" style="color:#000;">SELF</div><div id="sm1" class="god"></div><div id="sy1" class="god"></div>
+            
             <div id="h2" class="p-box"></div><div id="d2" class="p-box"></div><div id="m2" class="p-box"></div><div id="y2" class="p-box"></div>
-            <div id="gh2" class="god"></div><div id="gd2" class="god"></div><div id="gm2" class="god"></div><div id="gy2" class="god"></div>
+            <div id="sh2" class="god"></div><div id="sd2" class="god"></div><div id="sm2" class="god"></div><div id="sy2" class="god"></div>
         </div>
+        <div style="margin: 25px 0 10px; font-size: 14px; font-weight: 800;">10-YEAR LUCK PILLARS</div>
         <div id="luck-list" class="luck-list"></div>
     </div>
 </div>
@@ -63,7 +69,7 @@
 const MAP = {'甲':['Yang Wood','wood'],'乙':['Yin Wood','wood'],'丙':['Yang Fire','fire'],'丁':['Yin Fire','fire'],'戊':['Yang Earth','earth'],'己':['Yin Earth','earth'],'庚':['Yang Metal','metal'],'辛':['Yin Metal','metal'],'壬':['Yang Water','water'],'癸':['Yin Water','water'],'子':['Rat','water'],'丑':['Ox','earth'],'寅':['Tiger','wood'],'卯':['Rabbit','wood'],'辰':['Dragon','earth'],'巳':['Snake','fire'],'午':['Horse','fire'],'未':['Goat','earth'],'申':['Monkey','metal'],'酉':['Rooster','metal'],'戌':['Dog','earth'],'亥':['Pig','water']};
 const GODS = {'비견':'Friend','겁재':'Robber','식신':'Eating','상관':'Hurt','편재':'Wealth','정재':'D-Wealth','편관':'7-Kills','정관':'Officer','편인':'Owl','정인':'Resource'};
 
-// City Search
+// 1. City Search
 const cityIn = document.getElementById('city-in');
 const cityRes = document.getElementById('city-results');
 cityIn.addEventListener('input', function() {
@@ -85,64 +91,60 @@ cityIn.addEventListener('input', function() {
     });
 });
 
-// Calculation
+// 2. Calculation Logic
 document.getElementById('calc-btn').onclick = function() {
     const dtVal = document.getElementById('user-dt').value;
-    if(!dtVal) return alert("Select birth date.");
+    if(!dtVal) return alert("Please select your birth date.");
     
     const lon = parseFloat(document.getElementById('user-lon').value);
     const gen = parseInt(document.getElementById('user-gen').value);
     
-    // 1. Correct Time (Longitude correction)
+    // 진태양시 보정 (표준시 135도 기준)
     const dateObj = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
     
-    // 2. Solar & EightChar Object Creation
-    const solar = Solar.fromDate(dateObj);
-    const lunar = solar.getLunar();
-    const ba = lunar.getEightChar();
-    
-    // 3. Gender & Fortune (Update: Newer version approach)
-    // ba.setGender(gen); <-- 이 부분이 에러를 유발하므로 삭제하고 
-    // 대운 계산 시점에 성별을 직접 전달하는 방식으로 우회합니다.
+    if(typeof Solar === 'undefined') return alert("Engine loading... Try again in a second.");
 
-    const keys = ['h','d','m','y'];
-    const gans = [ba.getTimeGan(), ba.getDayGan(), ba.getMonthGan(), ba.getYearGan()];
-    const zhis = [ba.getTimeZhi(), ba.getDayZhi(), ba.getMonthZhi(), ba.getYearZhi()];
-    
-    // 십성 계산 (성별 불필요한 기본 십성)
-    const gTen = [ba.getTimeTenStarGan(), "", ba.getMonthTenStarGan(), ba.getYearTenStarGan()];
-    const zTen = [ba.getTimeTenStarZhi()[0], ba.getDayTenStarZhi()[0], ba.getMonthTenStarZhi()[0], ba.getYearTenStarZhi()[0]];
+    try {
+        const solar = Solar.fromDate(dateObj);
+        const ba = solar.getLunar().getEightChar();
+        
+        // 데이터 추출
+        const keys = ['h','d','m','y'];
+        const gans = [ba.getTimeGan(), ba.getDayGan(), ba.getMonthGan(), ba.getYearGan()];
+        const zhis = [ba.getTimeZhi(), ba.getDayZhi(), ba.getMonthZhi(), ba.getYearZhi()];
+        const gTen = [ba.getTimeTenStarGan(), "", ba.getMonthTenStarGan(), ba.getYearTenStarGan()];
+        const zTen = [ba.getTimeTenStarZhi()[0], ba.getDayTenStarZhi()[0], ba.getMonthTenStarZhi()[0], ba.getYearTenStarZhi()[0]];
 
-    for(let i=0; i<4; i++) {
-        render(keys[i]+'1', 'gh'+keys[i]+'1', gans[i], gTen[i]);
-        render(keys[i]+'2', 'g'+keys[i].replace('d','d')+(i==1?'d2':keys[i]+'2'), zhis[i], zTen[i]);
-        // ID 보정 작업
-        if(keys[i] === 'd') render('d2', 'gd2', zhis[i], zTen[i]);
-        if(keys[i] === 'h') render('h2', 'gh2', zhis[i], zTen[i]);
-        if(keys[i] === 'm') render('m2', 'gm2', zhis[i], zTen[i]);
-        if(keys[i] === 'y') render('y2', 'gy2', zhis[i], zTen[i]);
+        // 8자 화면 렌더링
+        for(let i=0; i<4; i++) {
+            renderBox(keys[i]+'1', 's'+keys[i]+'1', gans[i], gTen[i]);
+            renderBox(keys[i]+'2', 's'+keys[i]+'2', zhis[i], zTen[i]);
+        }
+
+        // 대운(Fortune) 계산 - 성별을 여기서 주입하여 에러 방지
+        const luckArea = document.getElementById('luck-list');
+        luckArea.innerHTML = '';
+        const yun = ba.getFortune().getDaYun(gen); 
+        
+        for(let j=1; j<9; j++) {
+            const dy = yun[j];
+            if(!dy) continue;
+            luckArea.innerHTML += `
+                <div class="luck-card">
+                    <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">Age ${dy.getStartAge()}</div>
+                    <div class="p-box ${MAP[dy.getGan()][1]}" style="height:32px; font-size:14px; margin-bottom:4px; border-radius:8px;">${dy.getGan()}</div>
+                    <div class="p-box ${MAP[dy.getZhi()][1]}" style="height:32px; font-size:14px; border-radius:8px;">${dy.getZhi()}</div>
+                </div>`;
+        }
+
+        document.getElementById('result').style.display = 'block';
+    } catch(e) {
+        console.error(e);
+        alert("Calculation Error. Check your input.");
     }
-
-    // 4. Luck Pillars (DaYun) - 성별 적용
-    const luckArea = document.getElementById('luck-list');
-    luckArea.innerHTML = '';
-    const fortune = ba.getFortune();
-    // 성별에 따른 대운 방향 설정 (1: 남, 0: 여)
-    const yun = fortune.getDaYun(gen); 
-    
-    for(let j=1; j<9; j++) {
-        const dy = yun[j];
-        if(!dy) continue;
-        luckArea.innerHTML += `<div class="luck-card">
-            <div style="font-size:10px; color:#94a3b8; margin-bottom:8px;">Age ${dy.getStartAge()}</div>
-            <div class="p-box ${MAP[dy.getGan()][1]}" style="height:35px; font-size:14px; margin-bottom:4px;">${dy.getGan()}</div>
-            <div class="p-box ${MAP[dy.getZhi()][1]}" style="height:35px; font-size:14px;">${dy.getZhi()}</div>
-        </div>`;
-    }
-    document.getElementById('result').style.display = 'block';
 };
 
-function render(id, sid, han, ten) {
+function renderBox(id, sid, han, ten) {
     const info = MAP[han]; if(!info) return;
     const el = document.getElementById(id);
     const sel = document.getElementById(sid);
@@ -150,8 +152,11 @@ function render(id, sid, han, ten) {
         el.className = 'p-box ' + info[1] + (id==='d1'?' master':'');
         el.innerHTML = `<span>${info[0]}</span>${han}`;
     }
-    if(sel && sid !== 'gd1') sel.innerText = GODS[ten] || ten || "";
+    if(sel && sid !== 'sd1') {
+        sel.innerText = GODS[ten] || ten || "";
+    }
 }
 </script>
+
 </body>
 </html>
