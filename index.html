@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Bazi Mastery</title>
+    <title>Professional Bazi Chart</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root { --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #bdc3c7; --water: #2c3e50; }
@@ -18,8 +18,7 @@
         .city-item:hover { background: #f8fafc; font-weight: bold; }
         button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 14px; font-weight: 800; font-size: 17px; cursor: pointer; transition: 0.2s; }
         button:active { transform: scale(0.98); }
-        #result { display: none; margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #result { display: none; margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
         .p-box { height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 16px; color: #fff; font-weight: 800; font-size: 20px; }
         .p-box span { font-size: 10px; font-weight: 400; opacity: 0.8; margin-bottom: 3px; }
@@ -33,7 +32,7 @@
 <body>
 
 <div id="app">
-    <h2 style="text-align:center; margin-top:0; letter-spacing:-1px;">Bazi Destiny Tool</h2>
+    <h2 style="text-align:center; margin-top:0;">Bazi Destiny Tool</h2>
     <div class="input-group">
         <label>Birth City</label>
         <input type="text" id="city-in" placeholder="Search City (e.g. New York)" autocomplete="off">
@@ -94,15 +93,15 @@ cityIn.addEventListener('input', function() {
 // 2. Calculation Logic
 document.getElementById('calc-btn').onclick = function() {
     const dtVal = document.getElementById('user-dt').value;
-    if(!dtVal) return alert("Please select your birth date.");
+    if(!dtVal) return alert("Please select birth date.");
     
     const lon = parseFloat(document.getElementById('user-lon').value);
     const gen = parseInt(document.getElementById('user-gen').value);
     
-    // 진태양시 보정 (표준시 135도 기준)
+    // 진태양시 보정
     const dateObj = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
     
-    if(typeof Solar === 'undefined') return alert("Engine loading... Try again in a second.");
+    if(typeof Solar === 'undefined') return alert("Engine loading...");
 
     try {
         const solar = Solar.fromDate(dateObj);
@@ -112,19 +111,24 @@ document.getElementById('calc-btn').onclick = function() {
         const keys = ['h','d','m','y'];
         const gans = [ba.getTimeGan(), ba.getDayGan(), ba.getMonthGan(), ba.getYearGan()];
         const zhis = [ba.getTimeZhi(), ba.getDayZhi(), ba.getMonthZhi(), ba.getYearZhi()];
+        
+        // 기본 십성 추출 (성별 무관)
         const gTen = [ba.getTimeTenStarGan(), "", ba.getMonthTenStarGan(), ba.getYearTenStarGan()];
         const zTen = [ba.getTimeTenStarZhi()[0], ba.getDayTenStarZhi()[0], ba.getMonthTenStarZhi()[0], ba.getYearTenStarZhi()[0]];
 
-        // 8자 화면 렌더링
+        // 8자 렌더링
         for(let i=0; i<4; i++) {
             renderBox(keys[i]+'1', 's'+keys[i]+'1', gans[i], gTen[i]);
             renderBox(keys[i]+'2', 's'+keys[i]+'2', zhis[i], zTen[i]);
         }
 
-        // 대운(Fortune) 계산 - 성별을 여기서 주입하여 에러 방지
+        // 대운(Luck Pillars) 계산 - 성별 주입 위치 변경
         const luckArea = document.getElementById('luck-list');
         luckArea.innerHTML = '';
-        const yun = ba.getFortune().getDaYun(gen); 
+        
+        // 최신 버전의 대운 산출 방식: getFortune() 후 getDaYun(성별)
+        const fortune = ba.getFortune();
+        const yun = fortune.getDaYun(gen); 
         
         for(let j=1; j<9; j++) {
             const dy = yun[j];
@@ -140,7 +144,7 @@ document.getElementById('calc-btn').onclick = function() {
         document.getElementById('result').style.display = 'block';
     } catch(e) {
         console.error(e);
-        alert("Calculation Error. Check your input.");
+        alert("Calculation Error. Please try again.");
     }
 };
 
@@ -157,6 +161,5 @@ function renderBox(id, sid, han, ten) {
     }
 }
 </script>
-
 </body>
 </html>
