@@ -3,134 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master - Bug Fixed</title>
+    <title>Simple Bazi Viewer</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root {
             --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
-            --metal: #7f8c8d; --water: #2c3e50; --bg: #f4f7f6;
+            --metal: #7f8c8d; --water: #2c3e50; --bg: #f8f9fa;
         }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        #container { max-width: 600px; width: 100%; background: #fff; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        h2 { text-align: center; color: #333; letter-spacing: -1px; }
-        .input-section { display: grid; gap: 15px; margin-bottom: 25px; }
-        label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; text-transform: uppercase; }
-        input, select { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
-        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: 800; font-size: 16px; cursor: pointer; }
+        body { background: var(--bg); font-family: 'Apple SD Gothic Neo', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        #container { max-width: 500px; width: 100%; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
         
-        #result { display: none; margin-top: 40px; }
-        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .cell { height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; font-size: 24px; font-weight: bold; }
-        .cell span { font-size: 10px; font-weight: normal; margin-bottom: 2px; }
-        .ten-star { font-size: 11px; font-weight: 700; color: #999; margin: 8px 0 15px; min-height: 14px; }
+        .input-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+        
+        button { width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #000; }
 
-        .luck-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        .luck-list { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 15px; }
-        .luck-card { min-width: 70px; background: #fafafa; padding: 10px; border-radius: 15px; text-align: center; border: 1px solid #eee; flex-shrink: 0; }
-        .mini-cell { height: 35px; border-radius: 8px; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-bottom: 4px; }
+        #result { display: none; margin-top: 30px; text-align: center; }
+        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .label { font-size: 12px; color: #999; margin-bottom: 5px; font-weight: bold; }
+        
+        /* 오행 색상 입힌 셀 */
+        .cell { height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; font-weight: bold; }
+        .master { border: 3px solid #000; box-sizing: border-box; } /* 일간 강조 */
 
-        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
+        /* 색상 클래스 */
+        .wood { background: var(--wood); }
+        .fire { background: var(--fire); }
+        .earth { background: var(--earth); color: #333 !important; }
+        .metal { background: var(--metal); }
+        .water { background: var(--water); }
     </style>
 </head>
 <body>
 
 <div id="container">
-    <h2>BAZI MASTER</h2>
-    <div class="input-section">
-        <label>Birth Date</label>
+    <h2>BAZI VIEWER</h2>
+    <div class="input-group">
+        <label>생년월일시 (Birth Date & Time)</label>
         <input type="datetime-local" id="birth-dt">
-        <label>Gender</label>
-        <select id="gender"><option value="1">Male</option><option value="0">Female</option></select>
     </div>
-    <button onclick="calculateBazi()">ANALYZE</button>
+    <button onclick="showBazi()">명식 추출하기</button>
 
     <div id="result">
-        <div class="bazi-grid" id="grid-container">
-            </div>
-        <div class="luck-section">
-            <div id="luck-list" class="luck-list"></div>
+        <div class="bazi-grid">
+            <div class="label">시(Hour)</div><div class="label">일(Day)</div><div class="label">월(Month)</div><div class="label">년(Year)</div>
+            
+            <div id="h-gan" class="cell"></div>
+            <div id="d-gan" class="cell master"></div>
+            <div id="m-gan" class="cell"></div>
+            <div id="y-gan" class="cell"></div>
+            
+            <div id="h-zhi" class="cell"></div>
+            <div id="d-zhi" class="cell"></div>
+            <div id="m-zhi" class="cell"></div>
+            <div id="y-zhi" class="cell"></div>
         </div>
     </div>
 </div>
 
 <script>
-const BAZI_DATA = {
-    '甲':['Wood','wood',0],'乙':['Wood','wood',1],'丙':['Fire','fire',2],'丁':['Fire','fire',3],'戊':['Earth','earth',4],'己':['Earth','earth',5],'庚':['Metal','metal',6],'辛':['Metal','metal',7],'壬':['Water','water',8],'癸':['Water','water',9],
-    '寅':['Tiger','wood',0],'卯':['Rabbit','wood',1],'巳':['Snake','fire',2],'午':['Horse','fire',3],'辰':['Dragon','earth',4],'戌':['Dog','earth',4],'丑':['Ox','earth',5],'未':['Goat','earth',5],'申':['Monkey','metal',6],'酉':['Rooster','metal',7],'亥':['Pig','water',8],'子':['Rat','water',9]
+// 오행 데이터 맵핑
+const DATA = {
+    '甲': 'wood', '乙': 'wood', '寅': 'wood', '卯': 'wood',
+    '丙': 'fire', '丁': 'fire', '巳': 'fire', '午': 'fire',
+    '戊': 'earth', '己': 'earth', '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
+    '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal',
+    '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water'
 };
-const STAR_NAMES = ['Friend','Robber','Eating','Hurt','Wealth','D-Wealth','7-Kills','Officer','Owl','Resource'];
 
-function getStar(me, target) {
-    if(!BAZI_DATA[me] || !BAZI_DATA[target]) return "";
-    let diff = BAZI_DATA[target][2] - BAZI_DATA[me][2];
-    if(diff < 0) diff += 10;
-    return STAR_NAMES[diff];
-}
+function showBazi() {
+    const val = document.getElementById('birth-dt').value;
+    if (!val) return alert("날짜를 선택해주세요.");
 
-function calculateBazi() {
-    const dtVal = document.getElementById('birth-dt').value;
-    if(!dtVal) return;
-    const gender = parseInt(document.getElementById('gender').value);
-
-    // 1. Lunar 객체 및 EightChar 추출
-    const solar = Solar.fromDate(new Date(dtVal));
-    const lunar = solar.getLunar();
-    const ba = lunar.getEightChar();
-    const me = ba.getDayGan();
-
-    // 2. 명식 데이터 배열 (시, 일, 월, 년 순서)
-    const pillars = [
-        { g: ba.getHourGan(), z: ba.getHourZhi(), label: 'HOUR' },
-        { g: ba.getDayGan(), z: ba.getDayZhi(), label: 'DAY', master: true },
-        { g: ba.getMonthGan(), z: ba.getMonthZhi(), label: 'MONTH' },
-        { g: ba.getYearGan(), z: ba.getYearZhi(), label: 'YEAR' }
-    ];
-
-    // 3. 명식 렌더링
-    const grid = document.getElementById('grid-container');
-    grid.innerHTML = pillars.map(p => `<div><div class="pillar-label">${p.label}</div></div>`).join('');
+    // 1. Solar 객체 생성 (입력받은 시간 기준)
+    const solar = Solar.fromDate(new Date(val));
     
-    // 천간
-    pillars.forEach(p => {
-        grid.innerHTML += `<div class="cell ${BAZI_DATA[p.g][1]} ${p.master?'outline:4px solid #000':''}"><span>${BAZI_DATA[p.g][0]}</span>${p.g}</div>`;
-    });
-    // 십성(천간)
-    pillars.forEach(p => {
-        grid.innerHTML += `<div class="ten-star">${p.master ? 'SELF' : getStar(me, p.g)}</div>`;
-    });
-    // 지지
-    pillars.forEach(p => {
-        grid.innerHTML += `<div class="cell ${BAZI_DATA[p.z][1]}"><span>${BAZI_DATA[p.z][0]}</span>${p.z}</div>`;
-    });
-    // 십성(지지)
-    pillars.forEach(p => {
-        grid.innerHTML += `<div class="ten-star">${getStar(me, p.z)}</div>`;
-    });
+    // 2. EightChar(팔자) 객체 추출 (가장 에러 없는 방식)
+    const ba = solar.getLunar().getEightChar();
 
-    // 4. 대운 계산 (에러 해결 핵심)
-    const luckList = document.getElementById('luck-list');
-    luckList.innerHTML = '';
-    
-    // 라이브러리에 따라 ba.getFortune()이 안 될 경우 lunar.getEightChar().getFortune() 확인
-    const fortune = ba.getFortune(); 
-    const daYun = fortune.getDaYun(gender).slice(1, 11); // 1대운부터 10개 추출
+    // 3. 각 기둥의 데이터를 화면에 매핑
+    const render = (id, han) => {
+        const el = document.getElementById(id);
+        el.innerText = han;
+        el.className = `cell ${DATA[han] || ''} ${id === 'd-gan' ? 'master' : ''}`;
+    };
 
-    daYun.forEach(dy => {
-        const dg = dy.getGan();
-        const dz = dy.getZhi();
-        const card = document.createElement('div');
-        card.className = 'luck-card';
-        card.innerHTML = `
-            <div style="font-size:11px; font-weight:bold; margin-bottom:5px;">${dy.getStartAge()}</div>
-            <div class="mini-cell ${BAZI_DATA[dg][1]}">${dg}</div>
-            <div class="mini-cell ${BAZI_DATA[dz][1]}">${dz}</div>
-            <div style="font-size:9px; color:#999;">${getStar(me, dg)}<br>${getStar(me, dz)}</div>
-        `;
-        luckList.appendChild(card);
-    });
+    // 천간 데이터 입력
+    render('y-gan', ba.getYearGan());
+    render('m-gan', ba.getMonthGan());
+    render('d-gan', ba.getDayGan());
+    render('h-gan', ba.getHourGan());
 
+    // 지지 데이터 입력
+    render('y-zhi', ba.getYearZhi());
+    render('m-zhi', ba.getMonthZhi());
+    render('d-zhi', ba.getDayZhi());
+    render('h-zhi', ba.getHourZhi());
+
+    // 결과창 보여주기
     document.getElementById('result').style.display = 'block';
 }
 </script>
+
 </body>
 </html>
