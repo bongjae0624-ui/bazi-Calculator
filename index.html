@@ -2,94 +2,21 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master - Stable</title>
+    <title>Data Generator - Lunar Library</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
-    <style>
-        :root {
-            --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
-            --metal: #7f8c8d; --water: #2c3e50; --bg: #f4f7f6;
-        }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
-        #container { max-width: 500px; width: 100%; background: #fff; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
-        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
-        
-        #result { display: none; margin-top: 30px; }
-        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .label { font-size: 11px; color: #bbb; font-weight: bold; margin-bottom: 5px; }
-        .cell { height: 85px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: bold; }
-        .master { outline: 4px solid #000; outline-offset: -4px; }
-
-        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
-    </style>
 </head>
-<body>
+<body style="text-align: center; padding-top: 50px; font-family: sans-serif;">
 
-<div id="container">
-    <input type="datetime-local" id="birth-dt">
-    <button onclick="calculateBazi()">ANALYZE DESTINY</button>
-
-    <div id="result">
-        <div class="bazi-grid">
-            <div class="label">HOUR</div><div class="label">DAY</div><div class="label">MONTH</div><div class="label">YEAR</div>
-            <div id="h-gan" class="cell"></div><div id="d-gan" class="cell master"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
-            <div id="h-zhi" class="cell"></div><div id="d-zhi" class="cell"></div><div id="m-zhi" class="cell"></div><div id="y-zhi" class="cell"></div>
-        </div>
+    <h1>데이터 추출 전용 페이지</h1>
+    <p>이 페이지가 열린 상태에서 <b>F12</b>를 눌러 <b>Console</b> 탭에 들어간 뒤,</p>
+    <p>복사한 추출 코드를 붙여넣고 <b>Enter</b>를 치세요.</p>
+    
+    <div style="color: blue; font-weight: bold; margin-top: 20px;">
+        ※ 라이브러리 로드 상태: 
+        <script>
+            document.write(typeof Solar !== 'undefined' ? "✅ 준비 완료" : "❌ 로드 실패");
+        </script>
     </div>
-</div>
 
-<script>
-const COLOR_MAP = {
-    '甲':'wood','乙':'wood','寅':'wood','卯':'wood',
-    '丙':'fire','丁':'fire','巳':'fire','午':'fire',
-    '戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth',
-    '庚':'metal','辛':'metal','申':'metal','酉':'metal',
-    '壬':'water','癸':'water','亥':'water','子':'water'
-};
-
-function calculateBazi() {
-    const dtVal = document.getElementById('birth-dt').value;
-    if(!dtVal) return;
-
-    try {
-        // 1. Solar 및 Lunar 객체 생성
-        const solar = Solar.fromDate(new Date(dtVal));
-        const lunar = solar.getLunar();
-
-        // 2. Lunar 객체의 직접 메서드 사용 (getEightChar()를 거치지 않음)
-        // 이 메서드들은 "甲子" 형태의 문자열을 반환합니다.
-        const yP = lunar.getYearInGanZhi(); 
-        const mP = lunar.getMonthInGanZhi(); 
-        const dP = lunar.getDayInGanZhi(); 
-        const hP = lunar.getTimeInGanZhi(); // 'getHour' 대신 'getTime' 사용
-
-        const data = {
-            gan: [hP[0], dP[0], mP[0], yP[0]],
-            zhi: [hP[1], dP[1], mP[1], yP[1]]
-        };
-
-        const update = (id, han, isMaster = false) => {
-            const el = document.getElementById(id);
-            if(!el) return;
-            el.innerText = han;
-            el.className = `cell ${COLOR_MAP[han] || ''} ${isMaster ? 'master' : ''}`;
-        };
-
-        // 3. UI 업데이트
-        const prefixes = ['h', 'd', 'm', 'y'];
-        prefixes.forEach((p, i) => {
-            update(`${p}-gan`, data.gan[i], p === 'd');
-            update(`${p}-zhi`, data.zhi[i]);
-        });
-
-        document.getElementById('result').style.display = 'block';
-
-    } catch (e) {
-        console.error("Bazi Error:", e);
-        alert("분석 중 에러가 발생했습니다: " + e.message);
-    }
-}
-</script>
 </body>
 </html>
