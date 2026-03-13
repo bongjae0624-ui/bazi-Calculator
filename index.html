@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Mastery Tool</title>
+    <title>Global Bazi Mastery</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root { --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #bdc3c7; --water: #2c3e50; }
@@ -14,7 +14,7 @@
         input, select { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; box-sizing: border-box; font-size: 16px; outline: none; }
         #city-results { position: absolute; width: 100%; background: #fff; border: 1px solid #eee; z-index: 100; display: none; max-height: 200px; overflow-y: auto; border-radius: 12px; margin-top: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .city-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-        .city-item:hover { background: #f8fafc; }
+        .city-item:hover { background: #f8fafc; font-weight: bold; }
         button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 14px; font-weight: 800; font-size: 17px; cursor: pointer; }
         #result { display: none; margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
@@ -30,7 +30,7 @@
 <body>
 
 <div id="app">
-    <h2 style="text-align:center; margin-top:0; letter-spacing:-1px;">Bazi Destiny Tool</h2>
+    <h2 style="text-align:center; margin-top:0; letter-spacing:-1px;">Bazi Mastery</h2>
     <div class="input-group">
         <label>Birth City</label>
         <input type="text" id="city-in" placeholder="Search City (e.g. New York)" autocomplete="off">
@@ -63,10 +63,19 @@
 </div>
 
 <script>
-const MAP = {'甲':['Yang Wood','wood'],'乙':['Yin Wood','wood'],'丙':['Yang Fire','fire'],'丁':['Yin Fire','fire'],'戊':['Yang Earth','earth'],'己':['Yin Earth','earth'],'庚':['Yang Metal','metal'],'辛':['Yin Metal','metal'],'壬':['Yang Water','water'],'癸':['Yin Water','water'],'子':['Rat','water'],'丑':['Ox','earth'],'寅':['Tiger','wood'],'卯':['Rabbit','wood'],'辰':['Dragon','earth'],'巳':['Snake','fire'],'午':['Horse','fire'],'未':['Goat','earth'],'申':['Monkey','metal'],'酉':['Rooster','metal'],'戌':['Dog','earth'],'亥':['Pig','water']};
-const GODS = {'비견':'Friend','겁재':'Robber','식신':'Eating','상관':'Hurt','편재':'Wealth','정재':'D-Wealth','편관':'7-Kills','정관':'Officer','편인':'Owl','정인':'Resource'};
+const DATA = {'甲':['Yang Wood','wood',0],'乙':['Yin Wood','wood',1],'丙':['Yang Fire','fire',2],'丁':['Yin Fire','fire',3],'戊':['Yang Earth','earth',4],'己':['Yin Earth','earth',5],'庚':['Yang Metal','metal',6],'辛':['Yin Metal','metal',7],'壬':['Yang Water','water',8],'癸':['Yin Water','water',9],'子':['Rat','water',9],'丑':['Ox','earth',5],'寅':['Tiger','wood',0],'卯':['Rabbit','wood',1],'辰':['Dragon','earth',4],'巳':['Snake','fire',2],'午':['Horse','fire',3],'未':['Goat','earth',5],'申':['Monkey','metal',6],'酉':['Rooster','metal',7],'戌':['Dog','earth',4],'亥':['Pig','water',8]};
+const GOD_NAMES = ['Friend','Robber','Eating','Hurt','Wealth','D-Wealth','7-Kills','Officer','Owl','Resource'];
 
-// 1. City Search
+// 십성 직접 계산 로직 (에러 원천 차단)
+function getTenStar(me, target) {
+    const meIdx = DATA[me][2];
+    const targetIdx = DATA[target][2];
+    let diff = targetIdx - meIdx;
+    if (diff < 0) diff += 10;
+    return GOD_NAMES[diff];
+}
+
+// 도시 검색
 const cityIn = document.getElementById('city-in');
 const cityRes = document.getElementById('city-results');
 cityIn.addEventListener('input', function() {
@@ -88,7 +97,6 @@ cityIn.addEventListener('input', function() {
     });
 });
 
-// 2. Main Calc
 document.getElementById('calc-btn').onclick = function() {
     const dtVal = document.getElementById('user-dt').value;
     if(!dtVal) return alert("Select birth date.");
@@ -96,62 +104,46 @@ document.getElementById('calc-btn').onclick = function() {
     const gen = parseInt(document.getElementById('user-gen').value);
     
     const dateObj = new Date(new Date(dtVal).getTime() + (lon - 135) * 4 * 60000);
-    
-    if(typeof Solar === 'undefined') return alert("Loading engine...");
-
     const solar = Solar.fromDate(dateObj);
     const ba = solar.getLunar().getEightChar();
     
-    // 가장 안전하게 데이터를 뽑는 방법 (함수 호출 대신 배열 직접 매칭)
-    const gans = ba.getGans(); // [년, 월, 일, 시] 또는 [시, 일, 월, 년] 순서 확인 필요
-    // lunar-javascript의 getGans()는 [year, month, day, hour] 순서입니다.
-    
-    const yGan = ba.getYearGan(); const mGan = ba.getMonthGan(); const dGan = ba.getDayGan(); const hGan = ba.getTimeGan();
-    const yZhi = ba.getYearZhi(); const mZhi = ba.getMonthZhi(); const dZhi = ba.getDayZhi(); const hZhi = ba.getTimeZhi();
+    const hG = ba.getTimeGan(), dG = ba.getDayGan(), mG = ba.getMonthGan(), yG = ba.getYearGan();
+    const hZ = ba.getTimeZhi(), dZ = ba.getDayZhi(), mZ = ba.getMonthZhi(), yZ = ba.getYearZhi();
 
-    // 십성 (Ten Stars) - 에러 방지를 위해 하나씩 안전하게 호출
-    const getS = (fn) => { try { return ba[fn](); } catch(e) { return ""; } };
-    const getZ = (fn) => { try { return ba[fn]()[0]; } catch(e) { return ""; } };
+    // 일간(Me) 기준으로 십성 직접 계산
+    renderBox('h1', 'sh1', hG, getTenStar(dG, hG));
+    renderBox('d1', '', dG, "");
+    renderBox('m1', 'sm1', mG, getTenStar(dG, mG));
+    renderBox('y1', 'sy1', yG, getTenStar(dG, yG));
 
-    // 시간-일-월-년 순서로 렌더링
-    renderBox('h1', 'sh1', hGan, getS('getTimeTenStarGan'));
-    renderBox('d1', '', dGan, "");
-    renderBox('m1', 'sm1', mGan, getS('getMonthTenStarGan'));
-    renderBox('y1', 'sy1', yGan, getS('getYearTenStarGan'));
+    renderBox('h2', 'sh2', hZ, getTenStar(dG, hZ));
+    renderBox('d2', 'sd2', dZ, getTenStar(dG, dZ));
+    renderBox('m2', 'sm2', mZ, getTenStar(dG, mZ));
+    renderBox('y2', 'sy2', yZ, getTenStar(dG, yZ));
 
-    renderBox('h2', 'sh2', hZhi, getZ('getTimeTenStarZhi'));
-    renderBox('d2', 'sd2', dZhi, getZ('getDayTenStarZhi'));
-    renderBox('m2', 'sm2', mZhi, getZ('getMonthTenStarZhi'));
-    renderBox('y2', 'sy2', yZhi, getZ('getYearTenStarZhi'));
-
-    // 대운 (DaYun)
     const luckArea = document.getElementById('luck-list');
     luckArea.innerHTML = '';
     const yun = ba.getFortune().getDaYun(gen); 
     for(let j=1; j<9; j++) {
         const dy = yun[j];
         if(!dy) continue;
-        luckArea.innerHTML += `
-            <div class="luck-card">
-                <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">Age ${dy.getStartAge()}</div>
-                <div class="p-box ${MAP[dy.getGan()][1]}" style="height:32px; font-size:14px; margin-bottom:4px; border-radius:8px;">${dy.getGan()}</div>
-                <div class="p-box ${MAP[dy.getZhi()][1]}" style="height:32px; font-size:14px; border-radius:8px;">${dy.getZhi()}</div>
-            </div>`;
+        luckArea.innerHTML += `<div class="luck-card">
+            <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">Age ${dy.getStartAge()}</div>
+            <div class="p-box ${DATA[dy.getGan()][1]}" style="height:32px; font-size:14px; margin-bottom:4px; border-radius:8px;">${dy.getGan()}</div>
+            <div class="p-box ${DATA[dy.getZhi()][1]}" style="height:32px; font-size:14px; border-radius:8px;">${dy.getZhi()}</div>
+        </div>`;
     }
     document.getElementById('result').style.display = 'block';
 };
 
 function renderBox(id, sid, han, ten) {
-    const info = MAP[han]; if(!info) return;
+    const info = DATA[han]; if(!info) return;
     const el = document.getElementById(id);
     if(el) {
         el.className = 'p-box ' + info[1] + (id==='d1'?' master':'');
         el.innerHTML = `<span>${info[0]}</span>${han}`;
     }
-    if(sid) {
-        const sel = document.getElementById(sid);
-        if(sel) sel.innerText = GODS[ten] || ten || "";
-    }
+    if(sid) document.getElementById(sid).innerText = ten;
 }
 </script>
 </body>
