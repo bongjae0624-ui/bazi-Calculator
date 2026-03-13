@@ -2,92 +2,85 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master - Stable</title>
-    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
+    <title>Bazi Master - GitHub Cloud Version</title>
     <style>
-        :root {
-            --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
-            --metal: #7f8c8d; --water: #2c3e50; --bg: #f4f7f6;
-        }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
-        #container { max-width: 500px; width: 100%; background: #fff; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
-        button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
-        
-        #result { display: none; margin-top: 30px; }
-        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .label { font-size: 11px; color: #bbb; font-weight: bold; margin-bottom: 5px; }
-        .cell { height: 85px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: bold; }
-        .master { outline: 4px solid #000; outline-offset: -4px; }
-
-        .wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); color: #333 !important; } .metal { background: var(--metal); } .water { background: var(--water); }
+        /* (생략: 이전과 동일한 스타일을 사용하시거나, 디자인을 자유롭게 수정하세요) */
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f7f6; }
+        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 400px; margin: 30px auto; }
+        .cell { height: 80px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border: 1px solid #ddd; }
+        .label { font-size: 12px; color: #888; }
     </style>
 </head>
 <body>
 
-<div id="container">
+    <h2>BAZI MASTER (Cloud Data)</h2>
     <input type="datetime-local" id="birth-dt">
-    <button onclick="calculateBazi()">ANALYZE DESTINY</button>
+    <button onclick="analyze()">분석하기</button>
 
-    <div id="result">
+    <div id="result" style="display:none;">
         <div class="bazi-grid">
-            <div class="label">HOUR</div><div class="label">DAY</div><div class="label">MONTH</div><div class="label">YEAR</div>
-            <div id="h-gan" class="cell"></div><div id="d-gan" class="cell master"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
+            <div class="label">시</div><div class="label">일</div><div class="label">월</div><div class="label">년</div>
+            <div id="h-gan" class="cell"></div><div id="d-gan" class="cell"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
             <div id="h-zhi" class="cell"></div><div id="d-zhi" class="cell"></div><div id="m-zhi" class="cell"></div><div id="y-zhi" class="cell"></div>
         </div>
     </div>
-</div>
 
 <script>
-const COLOR_MAP = {
-    '甲':'wood','乙':'wood','寅':'wood','卯':'wood',
-    '丙':'fire','丁':'fire','巳':'fire','午':'fire',
-    '戊':'earth','己':'earth','辰':'earth','戌':'earth','丑':'earth','未':'earth',
-    '庚':'metal','辛':'metal','申':'metal','酉':'metal',
-    '壬':'water','癸':'water','亥':'water','子':'water'
-};
+let baziDatabase = null;
 
-function calculateBazi() {
-    const dtVal = document.getElementById('birth-dt').value;
-    if(!dtVal) return;
+// 1. 페이지 로드 시 GitHub에서 데이터 미리 가져오기
+async function loadData() {
+    // ⚠️ 아래 주소를 본인의 GitHub Raw 주소로 바꾸세요!
+    const RAW_URL = 'https://raw.githubusercontent.com/bongjae0624-ui/bazi-Calculator/main/bazi_data_1900_2100.json';
+    try {
+        const res = await fetch(RAW_URL);
+        baziDatabase = await res.json();
+        console.log("✅ 데이터 로드 완료");
+    } catch (e) {
+        console.error("❌ 데이터 로드 실패", e);
+    }
+}
+loadData();
+
+// 2. 시주(Hour Pillar) 계산기 (시두법 공식)
+function getHourPillar(dayGan, hour) {
+    const gans = "甲乙丙丁戊己庚辛壬癸";
+    const zhis = "子丑寅卯辰巳午未申酉戌亥";
+    
+    // 시간 -> 지지 인덱스 (23시~01시는 자시)
+    let zhiIdx = Math.floor((hour + 1) / 2) % 12;
+    
+    // 일간에 따른 시두법 공식
+    const startGanMap = { '甲': 0, '己': 0, '乙': 2, '庚': 2, '丙': 4, '辛': 4, '丁': 6, '壬': 6, '戊': 8, '癸': 8 };
+    let ganIdx = (startGanMap[dayGan] + zhiIdx) % 10;
+    
+    return gans[ganIdx] + zhis[zhiIdx];
+}
+
+async function analyze() {
+    if (!baziDatabase) return alert("데이터를 불러오는 중입니다. 잠시만 기다려주세요.");
+    
+    const dt = new Date(document.getElementById('birth-dt').value);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate(), h = dt.getHours();
 
     try {
-        // 1. Solar 및 Lunar 객체 생성
-        const solar = Solar.fromDate(new Date(dtVal));
-        const lunar = solar.getLunar();
+        // GitHub 데이터에서 년|월|일 추출
+        const rawPillars = baziDatabase[y][m][d]; // "庚午|辛巳|庚午"
+        const [yP, mP, dP] = rawPillars.split('|');
+        
+        // 시주 계산
+        const hP = getHourPillar(dP[0], h);
 
-        // 2. Lunar 객체의 직접 메서드 사용 (getEightChar()를 거치지 않음)
-        // 이 메서드들은 "甲子" 형태의 문자열을 반환합니다.
-        const yP = lunar.getYearInGanZhi(); 
-        const mP = lunar.getMonthInGanZhi(); 
-        const dP = lunar.getDayInGanZhi(); 
-        const hP = lunar.getTimeInGanZhi(); // 'getHour' 대신 'getTime' 사용
-
-        const data = {
-            gan: [hP[0], dP[0], mP[0], yP[0]],
-            zhi: [hP[1], dP[1], mP[1], yP[1]]
-        };
-
-        const update = (id, han, isMaster = false) => {
-            const el = document.getElementById(id);
-            if(!el) return;
-            el.innerText = han;
-            el.className = `cell ${COLOR_MAP[han] || ''} ${isMaster ? 'master' : ''}`;
-        };
-
-        // 3. UI 업데이트
-        const prefixes = ['h', 'd', 'm', 'y'];
-        prefixes.forEach((p, i) => {
-            update(`${p}-gan`, data.gan[i], p === 'd');
-            update(`${p}-zhi`, data.zhi[i]);
-        });
+        // 화면에 뿌리기
+        const show = (id, text) => document.getElementById(id).innerText = text;
+        show('y-gan', yP[0]); show('y-zhi', yP[1]);
+        show('m-gan', mP[0]); show('m-zhi', mP[1]);
+        show('d-gan', dP[0]); show('d-zhi', dP[1]);
+        show('h-gan', hP[0]); show('h-zhi', hP[1]);
 
         document.getElementById('result').style.display = 'block';
-
     } catch (e) {
-        console.error("Bazi Error:", e);
-        alert("분석 중 에러가 발생했습니다: " + e.message);
+        alert("해당 날짜의 데이터가 없습니다.");
     }
 }
 </script>
