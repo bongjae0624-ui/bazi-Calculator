@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master - Ultimate Safe</title>
+    <title>Bazi Master - Stable</title>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <style>
         :root {
             --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; 
             --metal: #7f8c8d; --water: #2c3e50; --bg: #f4f7f6;
         }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
         #container { max-width: 500px; width: 100%; background: #fff; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .input-group { margin-bottom: 20px; display: flex; flex-direction: column; }
-        input { padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
+        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; }
         button { width: 100%; padding: 18px; background: #000; color: #fff; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
         
         #result { display: none; margin-top: 30px; }
@@ -28,15 +27,12 @@
 <body>
 
 <div id="container">
-    <div class="input-group">
-        <input type="datetime-local" id="birth-dt">
-    </div>
-    <button onclick="calculateBazi()">ANALYZE</button>
+    <input type="datetime-local" id="birth-dt">
+    <button onclick="calculateBazi()">ANALYZE DESTINY</button>
 
     <div id="result">
         <div class="bazi-grid">
             <div class="label">HOUR</div><div class="label">DAY</div><div class="label">MONTH</div><div class="label">YEAR</div>
-            
             <div id="h-gan" class="cell"></div><div id="d-gan" class="cell master"></div><div id="m-gan" class="cell"></div><div id="y-gan" class="cell"></div>
             <div id="h-zhi" class="cell"></div><div id="d-zhi" class="cell"></div><div id="m-zhi" class="cell"></div><div id="y-zhi" class="cell"></div>
         </div>
@@ -57,16 +53,16 @@ function calculateBazi() {
     if(!dtVal) return;
 
     try {
-        // 1. Solar 객체 생성
+        // 1. Solar 및 Lunar 객체 생성
         const solar = Solar.fromDate(new Date(dtVal));
-        // 2. Lunar 객체 생성
         const lunar = solar.getLunar();
 
-        // 3. EightChar를 쓰지 않고 Lunar에서 바로 간지 추출 (가장 안전함)
+        // 2. Lunar 객체의 직접 메서드 사용 (getEightChar()를 거치지 않음)
+        // 이 메서드들은 "甲子" 형태의 문자열을 반환합니다.
         const yP = lunar.getYearInGanZhi(); 
         const mP = lunar.getMonthInGanZhi(); 
         const dP = lunar.getDayInGanZhi(); 
-        const hP = lunar.getTimeInGanZhi(); // 'getHour'가 아닌 'getTime'일 확률이 높음
+        const hP = lunar.getTimeInGanZhi(); // 'getHour' 대신 'getTime' 사용
 
         const data = {
             gan: [hP[0], dP[0], mP[0], yP[0]],
@@ -77,10 +73,10 @@ function calculateBazi() {
             const el = document.getElementById(id);
             if(!el) return;
             el.innerText = han;
-            el.className = `cell ${COLOR_MAP[han]} ${isMaster ? 'master' : ''}`;
+            el.className = `cell ${COLOR_MAP[han] || ''} ${isMaster ? 'master' : ''}`;
         };
 
-        // UI 업데이트
+        // 3. UI 업데이트
         const prefixes = ['h', 'd', 'm', 'y'];
         prefixes.forEach((p, i) => {
             update(`${p}-gan`, data.gan[i], p === 'd');
@@ -90,8 +86,8 @@ function calculateBazi() {
         document.getElementById('result').style.display = 'block';
 
     } catch (e) {
-        console.error("Critical Error:", e);
-        alert("에러가 발생했습니다: " + e.message);
+        console.error("Bazi Error:", e);
+        alert("분석 중 에러가 발생했습니다: " + e.message);
     }
 }
 </script>
