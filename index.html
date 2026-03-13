@@ -61,7 +61,7 @@ const COLORS = {'甲':'wood','乙':'wood','寅':'wood','卯':'wood','丙':'fire'
 
 // 데이터 로드
 async function init() {
-    const URL = 'https://raw.githubusercontent.com/사용자이름/저장소/main/bazi_data_1900_2100.json';
+    const URL = 'https://raw.githubusercontent.com/bongjae0624-ui/bazi-Calculator/main/bazi_data_1900_2100.json';
     try {
         const res = await fetch(URL);
         baziData = await res.json();
