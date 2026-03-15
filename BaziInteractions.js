@@ -2,7 +2,7 @@
  * BaziMaster Interaction & Shinsal Engine
  * 기능: 형/파/해, 원진&귀문(통합), 모든 귀인, 12신살(중복제거)
  */
-
+window.BaziMaster = window.BaziMaster || {};
 BaziMaster.getInteractions = function(allZhis, currentZhi) {
     let res = [];
     const zhisStr = allZhis.join('');
