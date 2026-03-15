@@ -14,16 +14,16 @@
         .container { max-width: 850px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
         .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; background: #eee; padding: 20px; border-radius: 15px; }
-        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
-        button { background: #0984e3; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #074973; }
+        input, select, button { padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; }
+        button { background: #34495e; color: white; border: none; cursor: pointer; transition: 0.3s; font-weight: bold; padding: 12px 25px; }
+        button:hover { background: #2c3e50; transform: translateY(-2px); }
 
-        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
-        .pillar { border: 1px solid #ddd; border-radius: 12px; overflow: hidden; text-align: center; background: #fff; }
-        .p-title { background: #f8f9fa; padding: 5px; font-weight: bold; font-size: 14px; border-bottom: 1px solid #eee; }
+        .result-grid { display: none; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; }
+        .pillar { border: 1px solid #eee; border-radius: 15px; overflow: hidden; text-align: center; background: #fff; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .p-title { padding: 10px; background: #f8f9fa; font-weight: bold; border-bottom: 1px solid #eee; color: #666; }
         
-        .box { height: 70px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; position: relative; }
-        .ss-label { position: absolute; top: 5px; left: 5px; font-size: 11px; opacity: 0.9; font-weight: normal; }
+        .box { padding: 20px 0; font-size: 32px; font-weight: 900; color: white; position: relative; }
+        .ss-label { position: absolute; top: 5px; left: 5px; font-size: 12px; opacity: 0.9; font-weight: normal; }
         
         .wood { background-color: var(--wood); }
         .fire { background-color: var(--fire); }
@@ -31,105 +31,84 @@
         .metal { background-color: var(--metal); color: #333; }
         .water { background-color: var(--water); }
 
-        .info { padding: 10px; font-size: 12px; min-height: 120px; text-align: left; }
-        .tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin: 2px; font-weight: bold; border: 1px solid #ddd; }
-        .status { margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px; line-height: 1.6; border: 1px solid #bbdefb; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 8px 0; }
+        /* 신살 태그 디자인 개선 */
+        .info { padding: 12px; font-size: 13px; text-align: left; background: #fafafa; border-top: 1px solid #eee; min-height: 180px; }
+        .tag-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+        .tag { padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
+        
+        .tag-nobility { background-color: #e3f2fd; color: #1976d2; } /* 귀인: 파랑 */
+        .tag-energy { background-color: #fff3e0; color: #e65100; }   /* 강한기운: 주황 */
+        .tag-sal { background-color: #fce4ec; color: #c2185b; }      /* 일반살: 분홍 */
+        .tag-12sal { background-color: #f1f8e9; color: #388e3c; }    /* 12신살: 초록 */
+        
+        .jijang-box { font-size: 11px; color: #666; background: #eee; padding: 6px; border-radius: 6px; margin: 8px 0; line-height: 1.4; }
+        .status-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; display: none; width: 100%; box-sizing: border-box; }
+        
+        @media (max-width: 600px) {
+            .result-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
 
-<div class="container" id="main-card">
-    <h2 style="text-align: center;">Bazi Master Pro</h2>
+<div class="container" id="captureArea">
+    <h2 style="text-align: center; margin-bottom: 25px;">Bazi Master Pro <small style="font-size: 0.5em; vertical-align: middle; color: #999;">v2.5</small></h2>
     
     <div class="input-group">
-        <input type="date" id="birthDate" value="1995-05-24">
-        <input type="time" id="birthTime" value="10:30">
+        <input type="datetime-local" id="birth" value="1992-07-23T09:50">
         <select id="gender">
             <option value="M">남성</option>
             <option value="F">여성</option>
         </select>
-        <button onclick="runAnalysis()">사주 분석 실행</button>
+        <button onclick="startAnalysis()">운명 분석 실행</button>
+        <button onclick="saveImage()" style="background:#27ae60;">결과 저장</button>
     </div>
 
-    <div id="loader" style="display:none; text-align:center; padding: 20px; color:#0984e3; font-weight: bold;">
-        데이터를 정밀 분석 중입니다...
+    <div class="result-grid" id="resultGrid">
+        <div class="pillar" id="p0"></div>
+        <div class="pillar" id="p1"></div>
+        <div class="pillar" id="p2"></div>
+        <div class="pillar" id="p3"></div>
     </div>
 
-    <div class="bazi-grid" id="resultGrid" style="display:none;">
-        <div class="pillar" id="p3"></div> <div class="pillar" id="p2"></div> <div class="pillar" id="p1"></div> <div class="pillar" id="p0"></div> </div>
-
-    <div class="status" id="statusBox" style="display:none;"></div>
+    <div class="status-box" id="statusBox"></div>
 </div>
 
 <script src="BaziData.js"></script>
 <script src="BaziCore.js"></script>
-<script src="BaziMaster.js"></script>
 <script src="BaziInteractions.js"></script>
+<script src="BaziMaster.js"></script>
 
 <script>
-    let db = null;
-
-    // 페이지 로드 시 JSON 데이터 불러오기
-    window.onload = async () => {
-        try {
-            const res = await fetch('bazi_data_1900_2100_with_terms.json');
-            if (!res.ok) throw new Error("파일을 찾을 수 없습니다.");
-            db = await res.json();
-            console.log("Database Loaded Successfully");
-        } catch(e) {
-            console.error(e);
-            alert("데이터 파일을 불러오지 못했습니다. Live Server 환경에서 실행 중인지 확인하세요.");
-        }
-    };
-
-    function runAnalysis() {
-        if(!db) {
-            alert("데이터가 아직 로딩 중입니다.");
-            return;
-        }
-
-        const bDate = document.getElementById('birthDate').value; 
-        const bTime = document.getElementById('birthTime').value; 
+    async function startAnalysis() {
+        const birthValue = document.getElementById('birth').value;
         const gender = document.getElementById('gender').value;
 
-        const [y, m, d] = bDate.split('-').map(Number);
-        const [hh, mm] = bTime.split(':').map(Number);
+        if(!birthValue) { alert("생년월일을 입력해주세요."); return; }
 
-        try {
-            // JSON 데이터 파싱 (db[연도][월][일])
-            const dayStr = db[y][m][d];
-            const parts = dayStr.split('|'); // [년주, 월주, 일주, 절입명, 절입시각...]
-            
-            const meGan = parts[2][0]; // 일간
-            const hourPillar = getHourP(meGan, hh); // 시주 계산
-            
-            const pillars = [parts[0], parts[1], parts[2], hourPillar];
+        const response = await fetch('bazi_data_1900_2100_with_terms.json');
+        const baziDataJson = await response.json();
 
-            // BaziMaster.analyze 실행
-            const result = BaziMaster.analyze({
-                birth: `${bDate} ${bTime}`,
-                term: parts[4], // 절입시간
-                gender: gender,
-                pillars: pillars
-            });
+        const date = new Date(birthValue);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
 
-            renderResult(result);
-        } catch (err) {
-            console.error("Analysis Error:", err);
-            alert("사주 분석 중 오류가 발생했습니다. 입력 정보를 확인해 주세요.");
-        }
-    }
+        const dayData = baziDataJson[year]?.[month]?.[day];
+        if(!dayData) { alert("해당 날짜의 데이터를 찾을 수 없습니다."); return; }
 
-    // 시주(Hour Pillar) 계산기
-    function getHourP(meG, hr) {
-        const GANS = "甲乙丙丁戊己庚辛壬癸";
-        const ZHIS = "子丑寅卯辰巳午未申酉戌亥";
-        let zIdx = Math.floor((hr + 1) / 2) % 12;
-        // 일간에 따른 시두법(時頭法)
-        const startMap = {'甲':0,'己':0,'乙':2,'庚':2,'丙':4,'辛':4,'丁':6,'壬':6,'戊':8,'癸':8};
-        let gIdx = (startMap[meG] + zIdx) % 10;
-        return GANS[gIdx] + ZHIS[zIdx];
+        const parts = dayData.split('|');
+        const pillars = [parts[0], parts[1], parts[2], BaziCore.getHourPillar(parts[2][0], date.getHours(), date.getMinutes())];
+        const termTime = parts[4]; 
+
+        const analysisResult = BaziMaster.analyze({
+            birth: birthValue,
+            term: termTime,
+            gender: gender,
+            pillars: pillars
+        });
+
+        renderResult(analysisResult);
     }
 
     function renderResult(res) {
@@ -140,6 +119,22 @@
             const ganCol = BaziData.ELEMENTS[p.pillar[0]];
             const zhiCol = BaziData.ELEMENTS[p.pillar[1]];
             const shinsal = res.shinsal[i];
+
+            // 신살 분류 및 태그 생성
+            const nobilityTags = shinsal.nobility
+                .filter(n => n.includes("귀인") || n.includes("록"))
+                .map(n => `<span class="tag tag-nobility">${n}</span>`).join('');
+            
+            const energyTags = shinsal.energy
+                .map(e => `<span class="tag tag-energy">${e}</span>`).join('');
+
+            const salTags = shinsal.nobility
+                .filter(n => n.includes("살") && !shinsal.energy.includes(n))
+                .map(n => `<span class="tag tag-sal">${n}</span>`).join('');
+
+            // 12신살 (이중 기준 대응: 콤마로 분리)
+            const twelveSalTags = shinsal.twelveSal.split(',')
+                .map(s => `<span class="tag tag-12sal">${s.trim()}</span>`).join('');
 
             el.innerHTML = `
                 <div class="p-title">${titles[i]}</div>
@@ -152,27 +147,48 @@
                     ${p.pillar[1]}
                 </div>
                 <div class="info">
-                    <strong>${p.twelveCycle}</strong> 
-                    <span style="font-size:10px; color:#888;">(${p.naeum})</span>
-                    <hr>
-                    <div style="font-size:11px; margin-bottom:5px;">지장간: ${p.jijang.list.join(', ')}</div>
-                    ${shinsal.nobility.map(n => `<span class="tag" style="background:#fff3cd; color:#856404;">${n}</span>`).join('')}
-                    ${shinsal.energy.map(e => `<span class="tag" style="background:#d1ecf1; color:#0c5460;">${e}</span>`).join('')}
-                    <div class="tag" style="background:#f8d7da; color:#721c24;">${shinsal.twelveSal}</div>
+                    <strong style="color:#333; font-size:15px;">${p.twelveCycle}</strong> 
+                    <span style="font-size:11px; color:#999; display:block;">납음: ${p.naeum}</span>
+                    <div class="jijang-box">지장간: ${p.jijang.list.join(', ')}</div>
+                    <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
+                    <div class="tag-container">
+                        ${nobilityTags}
+                        ${energyTags}
+                        ${salTags}
+                        ${twelveSalTags}
+                    </div>
                 </div>
             `;
         });
 
         document.getElementById('statusBox').innerHTML = `
-            <strong>분석 결과 요약</strong><br>
-            • <b>대운수:</b> ${res.daewunNum} (${res.metadata.daewunDirection})<br>
-            • <b>공망:</b> ${res.gongmang.join(', ')}<br>
-            • <b>지지 관계:</b> ${res.interactions.length > 0 ? res.interactions.join(', ') : '특이사항 없음'}
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="margin:0 0 10px 0; color:#444;">기본 정보</h4>
+                    • <b>대운수:</b> <span style="color:#2980b9">${res.daewunNum}</span> (${res.metadata.daewunDirection})<br>
+                    • <b>공망:</b> <span style="color:#e74c3c">${res.gongmang.join(', ')}</span>
+                </div>
+                <div>
+                    <h4 style="margin:0 0 10px 0; color:#444;">지지 특이관계</h4>
+                    ${res.interactions.length > 0 
+                        ? res.interactions.map(it => `<span class="tag tag-sal" style="margin-bottom:4px; display:inline-block;">${it}</span>`).join(' ') 
+                        : '<span style="color:#999;">특이사항 없음</span>'}
+                </div>
+            </div>
         `;
 
         document.getElementById('resultGrid').style.display = 'grid';
         document.getElementById('statusBox').style.display = 'block';
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function saveImage() {
+        const area = document.getElementById('captureArea');
+        html2canvas(area, { backgroundColor: "#f1f2f6", scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Bazi_Analysis_${new Date().getTime()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
     }
 </script>
 
