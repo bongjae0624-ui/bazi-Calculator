@@ -15,14 +15,15 @@
         
         .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; background: #eee; padding: 20px; border-radius: 15px; }
         input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
-        button { background: #0984e3; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button { background: #0984e3; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #074973; }
 
         .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
         .pillar { border: 1px solid #ddd; border-radius: 12px; overflow: hidden; text-align: center; background: #fff; }
-        .p-title { background: #f8f9fa; padding: 5px; font-weight: bold; font-size: 14px; }
+        .p-title { background: #f8f9fa; padding: 5px; font-weight: bold; font-size: 14px; border-bottom: 1px solid #eee; }
         
         .box { height: 70px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; position: relative; }
-        .ss-label { position: absolute; top: 5px; left: 5px; font-size: 11px; opacity: 0.8; }
+        .ss-label { position: absolute; top: 5px; left: 5px; font-size: 11px; opacity: 0.9; font-weight: normal; }
         
         .wood { background-color: var(--wood); }
         .fire { background-color: var(--fire); }
@@ -30,9 +31,10 @@
         .metal { background-color: var(--metal); color: #333; }
         .water { background-color: var(--water); }
 
-        .info { padding: 10px; font-size: 12px; min-height: 100px; }
+        .info { padding: 10px; font-size: 12px; min-height: 120px; text-align: left; }
         .tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin: 2px; font-weight: bold; border: 1px solid #ddd; }
-        .status { margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px; line-height: 1.6; }
+        .status { margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px; line-height: 1.6; border: 1px solid #bbdefb; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 8px 0; }
     </style>
 </head>
 <body>
@@ -41,8 +43,8 @@
     <h2 style="text-align: center;">Bazi Master Pro</h2>
     
     <div class="input-group">
-        <input type="date" id="birthDate" value="1990-03-15">
-        <input type="time" id="birthTime" value="14:30">
+        <input type="date" id="birthDate" value="1995-05-24">
+        <input type="time" id="birthTime" value="10:30">
         <select id="gender">
             <option value="M">남성</option>
             <option value="F">여성</option>
@@ -50,7 +52,9 @@
         <button onclick="runAnalysis()">사주 분석 실행</button>
     </div>
 
-    <div id="loader" style="display:none; text-align:center; color:#0984e3;">데이터 분석 중...</div>
+    <div id="loader" style="display:none; text-align:center; padding: 20px; color:#0984e3; font-weight: bold;">
+        데이터를 정밀 분석 중입니다...
+    </div>
 
     <div class="bazi-grid" id="resultGrid" style="display:none;">
         <div class="pillar" id="p3"></div> <div class="pillar" id="p2"></div> <div class="pillar" id="p1"></div> <div class="pillar" id="p0"></div> </div>
@@ -60,107 +64,115 @@
 
 <script src="BaziData.js"></script>
 <script src="BaziCore.js"></script>
-<script src="BaziInteractions.js"></script>
 <script src="BaziMaster.js"></script>
+<script src="BaziInteractions.js"></script>
 
 <script>
     let db = null;
 
-    // 초기 데이터 로드
+    // 페이지 로드 시 JSON 데이터 불러오기
     window.onload = async () => {
         try {
             const res = await fetch('bazi_data_1900_2100_with_terms.json');
+            if (!res.ok) throw new Error("파일을 찾을 수 없습니다.");
             db = await res.json();
-            console.log("데이터 로드 성공");
+            console.log("Database Loaded Successfully");
         } catch(e) {
-            alert("JSON 파일을 불러올 수 없습니다. 서버(Live Server 등)에서 실행해주세요.");
+            console.error(e);
+            alert("데이터 파일을 불러오지 못했습니다. Live Server 환경에서 실행 중인지 확인하세요.");
         }
     };
 
     function runAnalysis() {
-        if(!db) return;
-        document.getElementById('loader').style.display = 'block';
+        if(!db) {
+            alert("데이터가 아직 로딩 중입니다.");
+            return;
+        }
 
-        const bDate = document.getElementById('birthDate').value; // YYYY-MM-DD
-        const bTime = document.getElementById('birthTime').value; // HH:mm
+        const bDate = document.getElementById('birthDate').value; 
+        const bTime = document.getElementById('birthTime').value; 
         const gender = document.getElementById('gender').value;
 
         const [y, m, d] = bDate.split('-').map(Number);
         const [hh, mm] = bTime.split(':').map(Number);
 
-        // 1. JSON에서 팔자 데이터 찾기
-        const targetYear = db[y];
-        if(!targetYear || !targetYear[m] || !targetYear[m][d]) {
-            alert("해당 날짜의 데이터가 없습니다.");
-            return;
+        try {
+            // JSON 데이터 파싱 (db[연도][월][일])
+            const dayStr = db[y][m][d];
+            const parts = dayStr.split('|'); // [년주, 월주, 일주, 절입명, 절입시각...]
+            
+            const meGan = parts[2][0]; // 일간
+            const hourPillar = getHourP(meGan, hh); // 시주 계산
+            
+            const pillars = [parts[0], parts[1], parts[2], hourPillar];
+
+            // BaziMaster.analyze 실행
+            const result = BaziMaster.analyze({
+                birth: `${bDate} ${bTime}`,
+                term: parts[4], // 절입시간
+                gender: gender,
+                pillars: pillars
+            });
+
+            renderResult(result);
+        } catch (err) {
+            console.error("Analysis Error:", err);
+            alert("사주 분석 중 오류가 발생했습니다. 입력 정보를 확인해 주세요.");
         }
-
-        const rawStr = targetYear[m][d]; 
-        const parts = rawStr.split('|'); // [년, 월, 일, 절입명, 절입시간...]
-        
-        const pillars = [parts[0], parts[1], parts[2]]; // 년월일
-        const hourP = getHourP(pillars[2][0], hh); // 시주 계산
-        pillars.push(hourP);
-
-        // 2. BaziMaster 엔진 실행
-        const result = BaziMaster.analyze({
-            birth: `${bDate} ${bTime}`,
-            term: parts[4], 
-            gender: gender,
-            pillars: pillars
-        });
-
-        render(result);
     }
 
-    // 시주 계산 로직
+    // 시주(Hour Pillar) 계산기
     function getHourP(meG, hr) {
         const GANS = "甲乙丙丁戊己庚辛壬癸";
         const ZHIS = "子丑寅卯辰巳午未申酉戌亥";
-        let zI = Math.floor((hr + 1) / 2) % 12;
-        const s = {'甲':0,'己':0,'乙':2,'庚':2,'丙':4,'辛':4,'丁':6,'壬':6,'戊':8,'癸':8};
-        return GANS[(s[meG] + zI) % 10] + ZHIS[zI];
+        let zIdx = Math.floor((hr + 1) / 2) % 12;
+        // 일간에 따른 시두법(時頭法)
+        const startMap = {'甲':0,'己':0,'乙':2,'庚':2,'丙':4,'辛':4,'丁':6,'壬':6,'戊':8,'癸':8};
+        let gIdx = (startMap[meG] + zIdx) % 10;
+        return GANS[gIdx] + ZHIS[zIdx];
     }
 
-    function render(res) {
+    function renderResult(res) {
         const titles = ["년주", "월주", "일주", "시주"];
         
         res.wonkuk.forEach((p, i) => {
             const el = document.getElementById(`p${i}`);
-            const ganElm = BaziData.ELEMENTS[p.pillar[0]];
-            const zhiElm = BaziData.ELEMENTS[p.pillar[1]];
+            const ganCol = BaziData.ELEMENTS[p.pillar[0]];
+            const zhiCol = BaziData.ELEMENTS[p.pillar[1]];
             const shinsal = res.shinsal[i];
 
             el.innerHTML = `
                 <div class="p-title">${titles[i]}</div>
-                <div class="box ${ganElm}">
+                <div class="box ${ganCol}">
                     <span class="ss-label">${p.ssGan}</span>
                     ${p.pillar[0]}
                 </div>
-                <div class="box ${zhiElm}">
+                <div class="box ${zhiCol}">
                     <span class="ss-label">${p.ssZhi}</span>
                     ${p.pillar[1]}
                 </div>
                 <div class="info">
-                    <strong>${p.twelveCycle}</strong><br>
-                    <span style="color:#666">${p.naeum}</span><hr>
-                    <div style="font-size:10px">지장간: ${p.jijang.list.join(',')}</div>
-                    ${shinsal.nobility.map(n => `<span class="tag" style="background:#fff3cd">${n}</span>`).join('')}
-                    ${shinsal.energy.map(e => `<span class="tag" style="background:#d1ecf1">${e}</span>`).join('')}
-                    <span class="tag" style="background:#f8d7da">${shinsal.twelveSal}</span>
+                    <strong>${p.twelveCycle}</strong> 
+                    <span style="font-size:10px; color:#888;">(${p.naeum})</span>
+                    <hr>
+                    <div style="font-size:11px; margin-bottom:5px;">지장간: ${p.jijang.list.join(', ')}</div>
+                    ${shinsal.nobility.map(n => `<span class="tag" style="background:#fff3cd; color:#856404;">${n}</span>`).join('')}
+                    ${shinsal.energy.map(e => `<span class="tag" style="background:#d1ecf1; color:#0c5460;">${e}</span>`).join('')}
+                    <div class="tag" style="background:#f8d7da; color:#721c24;">${shinsal.twelveSal}</div>
                 </div>
             `;
         });
 
         document.getElementById('statusBox').innerHTML = `
-            <b>분석 요약</b><br>
-            대운수: ${res.daewunNum} (${res.metadata.daewunDirection}) | 공망: ${res.gongmang.join(', ')}<br>
-            특이사항: ${res.interactions.length > 0 ? res.interactions.join(', ') : '없음'}
+            <strong>분석 결과 요약</strong><br>
+            • <b>대운수:</b> ${res.daewunNum} (${res.metadata.daewunDirection})<br>
+            • <b>공망:</b> ${res.gongmang.join(', ')}<br>
+            • <b>지지 관계:</b> ${res.interactions.length > 0 ? res.interactions.join(', ') : '특이사항 없음'}
         `;
 
-        document.getElementById('loader').style.display = 'none';
         document.getElementById('resultGrid').style.display = 'grid';
         document.getElementById('statusBox').style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 </script>
 
