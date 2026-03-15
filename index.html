@@ -4,31 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bazi Master Pro - Ultimate Edition</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root {
-            --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #95a5a6; --water: #2c3e50;
-            --bg: #f4f7f6; --card-bg: #ffffff; --text: #2d3436;
+        :root { 
+            --wood: #27ae60; --fire: #e74c3c; --earth: #f1c40f; --metal: #95a5a6; --water: #2c3e50; 
+            --bg: #f1f2f6; --card-bg: #ffffff;
         }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 850px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* 헤더 및 입력 */
-        header { text-align: center; margin-bottom: 30px; }
-        .input-box { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; background: #f8f9fa; padding: 20px; border-radius: 15px; }
-        input, select, button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { background: #0984e3; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #74b9ff; }
+        .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; background: #eee; padding: 20px; border-radius: 15px; }
+        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+        button { background: #0984e3; color: white; border: none; cursor: pointer; font-weight: bold; }
 
-        /* 사주 팔자 보드 */
-        .bazi-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; }
-        .pillar { display: flex; flex-direction: column; align-items: center; background: #fff; border: 1px solid #eee; border-radius: 12px; overflow: hidden; }
-        .pillar-head { width: 100%; text-align: center; background: #f1f2f6; padding: 8px 0; font-weight: bold; font-size: 14px; }
+        .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .pillar { border: 1px solid #ddd; border-radius: 12px; overflow: hidden; text-align: center; background: #fff; }
+        .p-title { background: #f8f9fa; padding: 5px; font-weight: bold; font-size: 14px; }
         
-        /* 천간 지지 디자인 */
-        .gan, .zhi { width: 100%; height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: white; }
-        .ss-label { font-size: 12px; margin-bottom: 5px; opacity: 0.9; }
+        .box { height: 70px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; position: relative; }
+        .ss-label { position: absolute; top: 5px; left: 5px; font-size: 11px; opacity: 0.8; }
         
         .wood { background-color: var(--wood); }
         .fire { background-color: var(--fire); }
@@ -36,51 +30,32 @@
         .metal { background-color: var(--metal); color: #333; }
         .water { background-color: var(--water); }
 
-        /* 세부 정보 영역 */
-        .info-panel { width: 100%; padding: 10px; font-size: 13px; border-top: 1px dashed #eee; }
-        .tag-group { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
-        .tag { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .tag.nobility { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-        .tag.interaction { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .tag.shinsal { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-
-        /* 하단 결과 영역 */
-        .result-footer { margin-top: 30px; padding: 20px; background: #f1f2f6; border-radius: 12px; line-height: 1.6; }
-        .loading { display: none; font-weight: bold; color: #0984e3; }
+        .info { padding: 10px; font-size: 12px; min-height: 100px; }
+        .tag { display: inline-block; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin: 2px; font-weight: bold; border: 1px solid #ddd; }
+        .status { margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
-<div class="container" id="capture-area">
-    <header>
-        <h1>Bazi Master Pro</h1>
-        <p>분리된 로직 엔진 기반의 정밀 만세력</p>
-    </header>
-
-    <div class="input-box">
-        <input type="date" id="birth-date" value="1990-03-15">
-        <input type="time" id="birth-time" value="14:30">
+<div class="container" id="main-card">
+    <h2 style="text-align: center;">Bazi Master Pro</h2>
+    
+    <div class="input-group">
+        <input type="date" id="birthDate" value="1990-03-15">
+        <input type="time" id="birthTime" value="14:30">
         <select id="gender">
             <option value="M">남성</option>
             <option value="F">여성</option>
         </select>
-        <button onclick="calculateBazi()">분석하기</button>
-        <button onclick="saveImage()" style="background:#2d3436">이미지 저장</button>
+        <button onclick="runAnalysis()">사주 분석 실행</button>
     </div>
 
-    <div id="loading" class="loading">데이터를 분석 중입니다...</div>
+    <div id="loader" style="display:none; text-align:center; color:#0984e3;">데이터 분석 중...</div>
 
-    <div class="bazi-board" id="result-board" style="display:none;">
-        <div class="pillar" id="hour-p"></div>
-        <div class="pillar" id="day-p"></div>
-        <div class="pillar" id="month-p"></div>
-        <div class="pillar" id="year-p"></div>
-    </div>
+    <div class="bazi-grid" id="resultGrid" style="display:none;">
+        <div class="pillar" id="p3"></div> <div class="pillar" id="p2"></div> <div class="pillar" id="p1"></div> <div class="pillar" id="p0"></div> </div>
 
-    <div class="result-footer" id="result-footer" style="display:none;">
-        <strong>[분석 요약]</strong><br>
-        <span id="summary-text"></span>
-    </div>
+    <div class="status" id="statusBox" style="display:none;"></div>
 </div>
 
 <script src="BaziData.js"></script>
@@ -89,131 +64,105 @@
 <script src="BaziMaster.js"></script>
 
 <script>
-let manseData = null;
+    let db = null;
 
-// 페이지 로드 시 JSON 데이터 불러오기
-window.onload = async function() {
-    try {
-        const response = await fetch('bazi_data_1900_2100_with_terms.json');
-        manseData = await response.json();
-        console.log("만세력 데이터 로드 완료");
-    } catch (e) {
-        alert("데이터 파일을 찾을 수 없습니다.");
-    }
-};
+    // 초기 데이터 로드
+    window.onload = async () => {
+        try {
+            const res = await fetch('bazi_data_1900_2100_with_terms.json');
+            db = await res.json();
+            console.log("데이터 로드 성공");
+        } catch(e) {
+            alert("JSON 파일을 불러올 수 없습니다. 서버(Live Server 등)에서 실행해주세요.");
+        }
+    };
 
-async function calculateBazi() {
-    if(!manseData) return alert("데이터가 아직 로드되지 않았습니다.");
-    
-    document.getElementById('loading').style.display = 'block';
-    
-    const dateInput = document.getElementById('birth-date').value; // YYYY-MM-DD
-    const timeInput = document.getElementById('birth-time').value; // HH:mm
-    const gender = document.getElementById('gender').value;
-    
-    const [y, m, d] = dateInput.split('-').map(Number);
-    const [hh, mm] = timeInput.split(':').map(Number);
+    function runAnalysis() {
+        if(!db) return;
+        document.getElementById('loader').style.display = 'block';
 
-    // 1. JSON에서 해당 날짜의 팔자 데이터 추출 (년,월,일 추출 로직)
-    const dayData = manseData[y] && manseData[y][m] ? manseData[y][m][d] : null;
-    if(!dayData) return alert("해당 날짜의 데이터가 없습니다.");
+        const bDate = document.getElementById('birthDate').value; // YYYY-MM-DD
+        const bTime = document.getElementById('birthTime').value; // HH:mm
+        const gender = document.getElementById('gender').value;
 
-    // 데이터 구조: "년주|월주|일주|절입명|절입시간|..."
-    const parts = dayData.split('|');
-    const pillars = [parts[0], parts[1], parts[2]]; // 년, 월, 일
+        const [y, m, d] = bDate.split('-').map(Number);
+        const [hh, mm] = bTime.split(':').map(Number);
 
-    // 2. 시주 계산
-    const meGan = pillars[2][0];
-    const hourPillar = getHourPillar(meGan, hh);
-    pillars.push(hourPillar); // [년, 월, 일, 시]
+        // 1. JSON에서 팔자 데이터 찾기
+        const targetYear = db[y];
+        if(!targetYear || !targetYear[m] || !targetYear[m][d]) {
+            alert("해당 날짜의 데이터가 없습니다.");
+            return;
+        }
 
-    // 3. 엔진 호출
-    const analysis = BaziMaster.analyze({
-        birth: `${dateInput} ${timeInput}`,
-        term: parts[4], // 절입시간
-        gender: gender,
-        pillars: pillars
-    });
-
-    renderBoard(analysis);
-}
-
-function getHourPillar(meG, hr) {
-    const gans = "甲乙丙丁戊己庚辛壬癸";
-    const zhis = "子丑寅卯辰巳午未申酉戌亥";
-    let zIdx = Math.floor((hr + 1) / 2) % 12;
-    const startIdx = {'甲':0,'己':0,'乙':2,'庚':2,'丙':4,'辛':4,'丁':6,'壬':6,'戊':8,'癸':8}[meG];
-    return gans[(startIdx + zIdx) % 10] + zhis[zIdx];
-}
-
-function renderBoard(res) {
-    const ids = ['year-p', 'month-p', 'day-p', 'hour-p'];
-    const titles = ['년주', '월주', '일주', '시주'];
-    
-    // 역순으로 렌더링 (시 일 월 년)
-    [3, 2, 1, 0].forEach((pIdx, i) => {
-        const p = res.wonkuk[pIdx];
-        const s = res.shinsal[pIdx];
-        const el = document.getElementById(ids[3-i]);
+        const rawStr = targetYear[m][d]; 
+        const parts = rawStr.split('|'); // [년, 월, 일, 절입명, 절입시간...]
         
-        const ganColor = BaziData.ELEMENTS[p.pillar[0]];
-        const zhiColor = BaziData.ELEMENTS[p.pillar[1]];
+        const pillars = [parts[0], parts[1], parts[2]]; // 년월일
+        const hourP = getHourP(pillars[2][0], hh); // 시주 계산
+        pillars.push(hourP);
 
-        el.innerHTML = `
-            <div class="pillar-head">${titles[pIdx]}</div>
-            <div class="gan ${ganColor}">
-                <span class="ss-label">${p.ssGan}</span>
-                ${p.pillar[0]}
-            </div>
-            <div class="zhi ${zhiColor}">
-                <span class="ss-label">${p.ssZhi}</span>
-                ${p.pillar[1]}
-            </div>
-            <div class="info-panel">
-                <div><b>${p.twelveCycle}</b> | ${p.naeum}</div>
-                <div style="color:#636e72; font-size:11px;">지장간: ${p.jijang.list.join(',')}</div>
-                <div class="tag-group">
-                    ${s.nobility.map(n => `<span class="tag nobility">${n}</span>`).join('')}
-                    ${s.energy.map(e => `<span class="tag shinsal">${e}</span>`).join('')}
-                    <span class="tag shinsal">${s.twelveSal}</span>
-                    ${res.interactions.filter(it => it.includes(p.pillar[1])).map(it => `<span class="tag interaction">${it}</span>`).join('')}
+        // 2. BaziMaster 엔진 실행
+        const result = BaziMaster.analyze({
+            birth: `${bDate} ${bTime}`,
+            term: parts[4], 
+            gender: gender,
+            pillars: pillars
+        });
+
+        render(result);
+    }
+
+    // 시주 계산 로직
+    function getHourP(meG, hr) {
+        const GANS = "甲乙丙丁戊己庚辛壬癸";
+        const ZHIS = "子丑寅卯辰巳午未申酉戌亥";
+        let zI = Math.floor((hr + 1) / 2) % 12;
+        const s = {'甲':0,'己':0,'乙':2,'庚':2,'丙':4,'辛':4,'丁':6,'壬':6,'戊':8,'癸':8};
+        return GANS[(s[meG] + zI) % 10] + ZHIS[zI];
+    }
+
+    function render(res) {
+        const titles = ["년주", "월주", "일주", "시주"];
+        
+        res.wonkuk.forEach((p, i) => {
+            const el = document.getElementById(`p${i}`);
+            const ganElm = BaziData.ELEMENTS[p.pillar[0]];
+            const zhiElm = BaziData.ELEMENTS[p.pillar[1]];
+            const shinsal = res.shinsal[i];
+
+            el.innerHTML = `
+                <div class="p-title">${titles[i]}</div>
+                <div class="box ${ganElm}">
+                    <span class="ss-label">${p.ssGan}</span>
+                    ${p.pillar[0]}
                 </div>
-            </div>
+                <div class="box ${zhiElm}">
+                    <span class="ss-label">${p.ssZhi}</span>
+                    ${p.pillar[1]}
+                </div>
+                <div class="info">
+                    <strong>${p.twelveCycle}</strong><br>
+                    <span style="color:#666">${p.naeum}</span><hr>
+                    <div style="font-size:10px">지장간: ${p.jijang.list.join(',')}</div>
+                    ${shinsal.nobility.map(n => `<span class="tag" style="background:#fff3cd">${n}</span>`).join('')}
+                    ${shinsal.energy.map(e => `<span class="tag" style="background:#d1ecf1">${e}</span>`).join('')}
+                    <span class="tag" style="background:#f8d7da">${shinsal.twelveSal}</span>
+                </div>
+            `;
+        });
+
+        document.getElementById('statusBox').innerHTML = `
+            <b>분석 요약</b><br>
+            대운수: ${res.daewunNum} (${res.metadata.daewunDirection}) | 공망: ${res.gongmang.join(', ')}<br>
+            특이사항: ${res.interactions.length > 0 ? res.interactions.join(', ') : '없음'}
         `;
-    });
 
-    document.getElementById('summary-text').innerHTML = `
-        대운수: <b>${res.daewunNum}</b> (${res.metadata.daewunDirection}) <br>
-        공망: <b>${res.gongmang.join(', ')}</b> <br>
-        오행 분포: 목(${res.balance.scores.wood}), 화(${res.balance.scores.fire}), 토(${res.balance.scores.earth}), 금(${res.balance.scores.metal}), 수(${res.balance.scores.water})
-    `;
-
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('result-board').style.display = 'grid';
-    document.getElementById('result-footer').style.display = 'block';
-}
-
-function saveImage() {
-    html2canvas(document.getElementById('capture-area')).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'my-bazi-result.png';
-        link.href = canvas.toDataURL();
-        link.click();
-    });
-}
-</script>
-<script src="BaziData.js"></script>
-
-<script src="BaziCore.js"></script>
-
-<script src="BaziInteractions.js"></script>
-
-<script src="BaziMaster.js"></script>
-
-<script>
-    async function calculateBazi() {
-        // 여기서 BaziMaster.analyze()를 호출합니다.
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('resultGrid').style.display = 'grid';
+        document.getElementById('statusBox').style.display = 'block';
     }
 </script>
+
 </body>
 </html>
