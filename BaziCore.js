@@ -3,7 +3,7 @@
  * 기능: 십신 계산, 오행 점수, 정밀 대운수, 공망, 지장간 추출
  */
 
-const BaziCore = {
+window.BaziCore = window.BaziCore || {
     // 1. 십신(十神) 계산
     getSS: function(meGan, targetGan) {
         if (!meGan || !targetGan) return "";

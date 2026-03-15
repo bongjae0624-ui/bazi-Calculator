@@ -7,7 +7,6 @@ BaziMaster.getInteractions = function(allZhis, currentZhi) {
     let res = [];
     const zhisStr = allZhis.join('');
 
-    // 1. 형(刑)
     const samHyung = ['寅巳申', '丑戌未'];
     samHyung.forEach(sh => {
         let count = 0;
@@ -17,13 +16,11 @@ BaziMaster.getInteractions = function(allZhis, currentZhi) {
     if(['子卯'].some(s => s.includes(currentZhi) && zhisStr.includes(s[0]) && zhisStr.includes(s[1]))) res.push({type:'hyung', name:'상형(자묘)'});
     if(['辰辰','午午','酉酉','亥亥'].some(s => s.includes(currentZhi) && zhisStr.split(currentZhi).length > 2)) res.push({type:'hyung', name:'자형'});
     
-    // 2. 파(破) & 해(害)
     const pa = {'子':'酉','丑':'辰','寅':'亥','卯':'午','巳':'申','戌':'未','酉':'子','辰':'丑','亥':'寅','午':'卯','申':'巳','未':'戌'};
     const hae = {'子':'未','丑':'午','寅':'巳','卯':'辰','辰':'卯','巳':'寅','午':'丑','未':'子','申':'亥','酉':'戌','戌':'酉','亥':'申'};
     if(zhisStr.includes(pa[currentZhi])) res.push({type:'pa', name:'파살'});
     if(zhisStr.includes(hae[currentZhi])) res.push({type:'hae', name:'해살'});
 
-    // 3. 원진 & 귀문
     const wonjin = {'子':'未','丑':'午','寅':'酉','卯':'申','辰':'亥','巳':'戌','午':'丑','未':'子','申':'卯','酉':'寅','戌':'巳','亥':'辰'};
     const gwimun = {'子':'酉','丑':'午','寅':'未','卯':'申','辰':'亥','巳':'戌','午':'丑','未':'寅','申':'卯','酉':'子','戌':'巳','亥':'辰'};
     if(zhisStr.includes(wonjin[currentZhi])) res.push({type:'psychic', name:'원진살'});
@@ -47,17 +44,20 @@ BaziMaster.getIntegrated12Sal = function(yearZhi, targetZhi) {
     const groupKey = Object.keys(groups).find(k => k.includes(yearZhi));
     if(!groupKey) return "";
     
-    // [수정 핵심] BaziData.ZHIS를 직접 참조하여 에러 방지
-    const zhiIdx = BaziData.ZHIS.indexOf(targetZhi);
-    const groupIdx = BaziData.ZHIS.indexOf(groups[groupKey]);
+    // BaziData에서 지지 목록을 가져와 명확하게 참조
+    const zhis = BaziData.ZHIS;
+    const targetIdx = zhis.indexOf(targetZhi);
+    const startIdx = zhis.indexOf(groups[groupKey]);
     
-    const diff = (zhiIdx - groupIdx + 12) % 12;
+    if(targetIdx === -1 || startIdx === -1) return "";
+
+    const diff = (targetIdx - startIdx + 12) % 12;
     return order[diff];
 };
 
 BaziMaster.getStrongEnergy = function(pillar, meGan) {
     let s = [];
-    if(["甲辰", "乙미", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"].includes(pillar)) s.push("백호살");
+    if(["甲辰", "乙未", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"].includes(pillar)) s.push("백호살");
     if(["戊戌", "庚戌", "庚辰", "壬辰"].includes(pillar)) s.push("괴강살");
     return s;
 };

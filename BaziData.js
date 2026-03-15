@@ -3,7 +3,7 @@
  * 기능: 지장간, 십이운성, 납음오행, 공망, 기본 오행 데이터
  */
 
-const BaziData = {
+window.BaziData = window.BaziData || {
     GANS: "甲乙丙丁戊己庚辛壬癸",
     ZHIS: "子丑寅卯辰巳午未申酉戌亥",
     
