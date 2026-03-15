@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazi Master Pro - Universal Engine</title>
+    <title>Bazi Master Pro - Fixed Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { 
@@ -12,64 +12,34 @@
         }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 900px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
         .input-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; background: #eee; padding: 20px; border-radius: 15px; }
         input, select, button { padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; }
         button { background: #34495e; color: white; border: none; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        button:hover { background: #2c3e50; transform: translateY(-2px); }
-
         .result-grid { display: none; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 30px; }
         .pillar { border: 1px solid #eee; border-radius: 15px; overflow: hidden; text-align: center; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .p-title { padding: 8px; background: #f8f9fa; font-weight: bold; border-bottom: 1px solid #eee; color: #666; font-size: 14px; }
-        
         .box { padding: 18px 0; font-size: 30px; font-weight: 900; color: white; position: relative; }
         .ss-label { position: absolute; top: 4px; left: 4px; font-size: 11px; opacity: 0.8; font-weight: normal; }
-        
-        .wood { background-color: var(--wood); }
-        .fire { background-color: var(--fire); }
-        .earth { background-color: var(--earth); color: #333; }
-        .metal { background-color: var(--metal); color: #333; }
-        .water { background-color: var(--water); }
-
-        /* 신살 태그 시스템 개선 */
+        .wood { background-color: var(--wood); } .fire { background-color: var(--fire); } .earth { background-color: var(--earth); color: #333; } .metal { background-color: var(--metal); color: #333; } .water { background-color: var(--water); }
         .info { padding: 12px; font-size: 13px; text-align: left; background: #fafafa; border-top: 1px solid #eee; min-height: 250px; }
         .tag-container { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 8px; }
         .tag { padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
-        
-        .tag-nobility { background-color: #e3f2fd; color: #1976d2; } /* 귀인: 파랑 */
-        .tag-energy { background-color: #fff3e0; color: #e65100; }   /* 강한기운: 주황 */
-        .tag-sal { background-color: #fce4ec; color: #c2185b; }      /* 일반살: 분홍 */
-        .tag-12sal { background-color: #f1f8e9; color: #388e3c; }    /* 12신살: 초록 */
-        
-        .jijang-box { font-size: 11px; color: #666; background: #eee; padding: 5px; border-radius: 5px; margin: 6px 0; }
-        .status-box { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px; display: none; width: 100%; box-sizing: border-box; font-size: 14px; }
-        
+        .tag-nobility { background-color: #e3f2fd; color: #1976d2; } .tag-energy { background-color: #fff3e0; color: #e65100; } .tag-sal { background-color: #fce4ec; color: #c2185b; } .tag-12sal { background-color: #f1f8e9; color: #388e3c; }
         @media (max-width: 768px) { .result-grid { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
 <div class="container" id="captureArea">
-    <h2 style="text-align: center; margin-bottom: 20px;">사주 원국 통합 분석 엔진</h2>
-    
+    <h2 style="text-align: center; margin-bottom: 20px;">사주 통합 분석기</h2>
     <div class="input-group">
         <input type="datetime-local" id="birth" value="1992-07-23T09:50">
-        <select id="gender">
-            <option value="M">남성</option>
-            <option value="F">여성</option>
-        </select>
+        <select id="gender"><option value="M">남성</option><option value="F">여성</option></select>
         <button onclick="startAnalysis()">분석 실행</button>
-        <button onclick="saveImage()" style="background:#27ae60;">이미지 저장</button>
     </div>
-
     <div class="result-grid" id="resultGrid">
-        <div class="pillar" id="p0"></div>
-        <div class="pillar" id="p1"></div>
-        <div class="pillar" id="p2"></div>
-        <div class="pillar" id="p3"></div>
+        <div class="pillar" id="p0"></div><div class="pillar" id="p1"></div><div class="pillar" id="p2"></div><div class="pillar" id="p3"></div>
     </div>
-
-    <div class="status-box" id="statusBox"></div>
+    <div class="status-box" id="statusBox" style="display:none; margin-top:20px; padding:20px; background:#f8f9fa; border-radius:15px;"></div>
 </div>
 
 <script src="BaziData.js"></script>
@@ -78,40 +48,41 @@
 <script src="BaziMaster.js"></script>
 
 <script>
-    /**
-     * 핵심 로직 수정: 
-     * 1. 모든 귀인과 신살의 조건을 함수화하여 누락 방지
-     * 2. 12신살의 이중 기준(년지/일지) 완전 통합
-     */
-    const UniversalEngine = {
-        // 일간 기준 귀인 및 신살 매핑
-        getNobility: function(meGan, targetZhi, pillar) {
-            let res = [];
-            const data = {
-                '천을귀인': {'甲':'未丑','乙':'申子','丙':'亥酉','丁':'亥酉','戊':'未丑','己':'申子','庚':'未丑','辛':'午寅','壬':'卯巳','癸':'卯巳'},
-                '암록': {'甲':'亥','乙':'戌','丙':'申','丁':'未','戊':'申','己':'未','庚':'巳','辛':'辰','壬':'寅','癸':'丑'},
-                '협록': {'甲':'丑','乙':'子','丙':'辰','丁':'卯','戊':'辰','己':'卯','庚':'未','辛':'午','壬':'戌','癸':'酉'},
-                '학당귀인': {'甲':'亥','乙':'午','丙':'寅','丁':'酉','戊':'寅','己':'酉','庚':'巳','辛':'子','壬':'申','癸':'卯'},
-                '문곡귀인': {'甲':'巳','乙':'亥','丙':'申','丁':'酉','戊':'申','己':'酉','庚':'亥','辛':'子','壬':'寅','癸':'卯'},
-                '건록': {'甲':'寅','乙':'卯','丙':'巳','丁':'午','戊':'巳','己':'午','庚':'申','辛':'酉','壬':'亥','癸':'子'},
-                '홍염살': {'甲':'午','乙':'午','丙':'寅','丁':'未','戊':'辰','己':'辰','庚':'戌','辛':'酉','壬':'申','癸':'子'},
-                '낙정관살': {'甲':'巳','乙':'子','丙':'亥','丁':'戌','戊':'申','己':'酉','庚':'午','辛':'未','壬':'卯','癸':'辰'}
-            };
-
-            for (let [name, map] of Object.entries(data)) {
-                if (map[meGan] && map[meGan].includes(targetZhi)) res.push(name);
-            }
-            if (/[甲申卯午辛]/.test(pillar)) res.push("현침살");
-            return res;
+    // 1. 에러 방지를 위한 내부 시주 계산기
+    const LocalHelper = {
+        getHourPillar: function(dayGan, hour) {
+            const zhis = "子丑寅卯辰巳午未申酉戌亥";
+            const hourZhiIdx = Math.floor(((hour + 1) % 24) / 2);
+            const hourZhi = zhis[hourZhiIdx];
+            const startGanMap = {'甲己':'甲','乙庚':'丙','丙辛':'戊','丁壬':'庚','戊癸':'壬'};
+            let startGan = "";
+            for(let key in startGanMap) { if(key.includes(dayGan)) startGan = startGanMap[key]; }
+            const gans = "甲乙丙丁戊己庚辛壬癸";
+            const hourGan = gans[(gans.indexOf(startGan) + hourZhiIdx) % 10];
+            return hourGan + hourZhi;
         },
-
-        // 12신살 계산 (년지/일지 공통)
         get12Sal: function(baseZhi, targetZhi) {
             const order = ["겁살","재살","천살","지살","년살","월살","망신살","장성살","반안살","역마살","육해살","화개살"];
             const groups = {'亥':'亥','卯':'亥','未':'亥','寅':'寅','午':'寅','戌':'寅','巳':'巳','酉':'巳','丑':'巳','申':'申','子':'申','辰':'申'};
             const startZhi = groups[baseZhi];
-            const idx = (BaziData.ZHIS.indexOf(targetZhi) - BaziData.ZHIS.indexOf(startZhi) + 12) % 12;
+            const zhis = "子丑寅卯辰巳午未申酉戌亥";
+            const idx = (zhis.indexOf(targetZhi) - zhis.indexOf(startZhi) + 12) % 12;
             return order[(idx + 3) % 12];
+        },
+        getNobility: function(meGan, targetZhi, pillar) {
+            let res = [];
+            const data = {
+                '천을귀인': {'甲':'未丑','乙':'申子','丙':'亥酉','丁':'亥酉','戊':'未丑','己':'申子','庚':'未丑','辛':'午寅','壬':'卯巳','癸':'卯巳'},
+                '암록': {'甲':'亥','乙':'戌','丙':'申','丁':'未','戊':'申','己':'미','庚':'巳','辛':'辰','壬':'寅','癸':'丑'},
+                '학당귀인': {'甲':'亥','乙':'午','丙':'寅','丁':'酉','戊':'寅','己':'酉','庚':'巳','辛':'子','壬':'申','癸':'卯'},
+                '문곡귀인': {'甲':'巳','乙':'亥','丙':'申','丁':'酉','戊':'申','己':'酉','庚':'亥','辛':'子','壬':'寅','癸':'卯'},
+                '건록': {'甲':'寅','乙':'卯','丙':'巳','丁':'午','戊':'巳','己':'午','庚':'申','辛':'酉','壬':'亥','癸':'子'},
+                '홍염살': {'甲':'午','乙':'午','丙':'寅','丁':'未','戊':'辰','己':'辰','庚':'戌','辛':'酉','壬':'申','癸':'子'}
+            };
+            for (let [name, map] of Object.entries(data)) { if (map[meGan]?.includes(targetZhi)) res.push(name); }
+            if (/[甲申卯午辛]/.test(pillar)) res.push("현침살");
+            if ({'甲':'巳','乙':'子','丙':'亥','丁':'戌','戊':'申','己':'酉','庚':'午','辛':'未','壬':'卯','癸':'辰'}[meGan] === targetZhi) res.push("낙정관살");
+            return res;
         }
     };
 
@@ -127,7 +98,8 @@
         if(!dayInfo) return;
 
         const parts = dayInfo.split('|');
-        const pillars = [parts[0], parts[1], parts[2], BaziCore.getHourPillar(parts[2][0], date.getHours(), date.getMinutes())];
+        // BaziCore.getHourPillar 대신 LocalHelper.getHourPillar 사용 (에러 해결 지점)
+        const pillars = [parts[0], parts[1], parts[2], LocalHelper.getHourPillar(parts[2][0], date.getHours())];
         
         const meGan = pillars[2][0];
         const yearZhi = pillars[0][1];
@@ -143,18 +115,17 @@
                 naeum: BaziData.NAEUM_MAP[p] || ""
             })),
             shinsal: pillars.map(p => {
-                const sYear = UniversalEngine.get12Sal(yearZhi, p[1]);
-                const sDay = UniversalEngine.get12Sal(dayZhi, p[1]);
+                const sYear = LocalHelper.get12Sal(yearZhi, p[1]);
+                const sDay = LocalHelper.get12Sal(dayZhi, p[1]);
                 return {
-                    nobility: UniversalEngine.getNobility(meGan, p[1], p),
+                    nobility: LocalHelper.getNobility(meGan, p[1], p),
                     energy: (["甲辰", "乙未", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"].includes(p) ? ["백호살"] : [])
                              .concat(["戊戌", "庚戌", "庚辰", "壬辰"].includes(p) ? ["괴강살"] : []),
                     twelveSal: sYear === sDay ? [sYear] : [sYear, sDay]
                 };
             }),
             daewunNum: BaziCore.getPreciseDaewun(birthStr, parts[4], gender, pillars[0][0]).exact,
-            gongmang: BaziCore.getGongmang(meGan, dayZhi),
-            interactions: [...new Set(pillars.map(p => BaziMaster.getInteractions(pillars.map(x=>x[1]), p[1])).flat().map(i => i.name))]
+            gongmang: BaziCore.getGongmang(meGan, dayZhi)
         };
 
         render(analysis);
@@ -165,12 +136,9 @@
         res.wonkuk.forEach((p, i) => {
             const el = document.getElementById(`p${i}`);
             const s = res.shinsal[i];
-            
-            const nob = s.nobility.filter(n => n.includes("귀인") || n.includes("록"))
-                .map(n => `<span class="tag tag-nobility">${n}</span>`).join('');
+            const nob = s.nobility.filter(n => n.includes("귀인") || n.includes("록")).map(n => `<span class="tag tag-nobility">${n}</span>`).join('');
             const nrg = s.energy.map(e => `<span class="tag tag-energy">${e}</span>`).join('');
-            const sal = s.nobility.filter(n => n.includes("살") && !s.energy.includes(n))
-                .map(n => `<span class="tag tag-sal">${n}</span>`).join('');
+            const sal = s.nobility.filter(n => !n.includes("귀인") && !n.includes("록")).map(n => `<span class="tag tag-sal">${n}</span>`).join('');
             const twelve = s.twelveSal.map(t => `<span class="tag tag-12sal">${t}</span>`).join('');
 
             el.innerHTML = `
@@ -180,29 +148,14 @@
                 <div class="info">
                     <strong>${p.twelveCycle}</strong> <span style="color:#999; font-size:11px;">${p.naeum}</span>
                     <div class="jijang-box">지장간: ${p.jijang.list.join(', ')}</div>
-                    <hr style="border:0; border-top:1px dashed #ddd; margin:8px 0;">
+                    <hr style="border:0; border-top:1px dashed #ddd; margin:10px 0;">
                     <div class="tag-container">${nob}${nrg}${sal}${twelve}</div>
                 </div>
             `;
         });
-
-        document.getElementById('statusBox').innerHTML = `
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div><b>대운수:</b> ${res.daewunNum} / <b>공망:</b> ${res.gongmang.join(', ')}</div>
-                <div><b>지지관계:</b> ${res.interactions.join(', ') || '없음'}</div>
-            </div>
-        `;
         document.getElementById('resultGrid').style.display = 'grid';
         document.getElementById('statusBox').style.display = 'block';
-    }
-
-    function saveImage() {
-        html2canvas(document.getElementById('captureArea')).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'bazi_pro_result.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        });
+        document.getElementById('statusBox').innerHTML = `<b>대운수:</b> ${res.daewunNum} / <b>공망:</b> ${res.gongmang.join(', ')}`;
     }
 </script>
 </body>
